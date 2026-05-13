@@ -30,14 +30,19 @@ class StorageService {
     if (_isInitialized) return;
     
     try {
-      final String jsonString = await rootBundle.loadString('assets/players_shl_ha_echl_2526.json');
-      final List<dynamic> jsonData = jsonDecode(jsonString);
+      final String skatersJson = await rootBundle.loadString('assets/players_shl_ha_echl_2526.json');
+      final List<dynamic> skatersData = jsonDecode(skatersJson);
       
-      final List<Player> players = jsonData.asMap().entries.map((entry) {
-        final int index = entry.key;
-        final map = entry.value;
-        return Player(
-          id: index + 1,
+      final String goaliesJson = await rootBundle.loadString('assets/goalies.json');
+      final List<dynamic> goaliesData = jsonDecode(goaliesJson);
+
+      final List<Player> players = [];
+      int currentId = 1;
+
+      // Add Skaters
+      for (final map in skatersData) {
+        players.add(Player(
+          id: currentId++,
           firstName: map['firstName'] ?? '',
           lastName: map['lastName'] ?? '',
           team: map['team'] ?? '',
@@ -51,8 +56,28 @@ class StorageService {
           penaltyMinutes: 0,
           league: map['league'] ?? '',
           isFavorite: false,
-        );
-      }).toList();
+        ));
+      }
+
+      // Add Goalies
+      for (final map in goaliesData) {
+        players.add(Player(
+          id: currentId++,
+          firstName: map['firstName'] ?? '',
+          lastName: map['lastName'] ?? '',
+          team: map['team'] ?? '',
+          position: 'G', // Ensure position is G
+          age: 0,
+          gamesPlayed: map['games'] ?? 0,
+          goals: 0,
+          assists: map['assists'] ?? 0,
+          points: map['assists'] ?? 0,
+          plusMinus: 0,
+          penaltyMinutes: 0,
+          league: map['league'] ?? '',
+          isFavorite: false,
+        ));
+      }
 
       _localState.clear();
       _localState.addAll(players);
@@ -81,6 +106,7 @@ class StorageService {
       
       _isInitialized = true;
     } catch (e) {
+      print('Error loading data: $e');
       _localState.addAll(mockPlayers);
       _isInitialized = true;
     }

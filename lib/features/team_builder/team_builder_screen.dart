@@ -15,7 +15,7 @@ class TeamBuilderScreen extends HookConsumerWidget {
     final lineupAsync = ref.watch(lineupProvider);
     final teamsAsync = ref.watch(teamsProvider);
     final selectedTeamId = ref.watch(selectedTeamIdProvider);
-    final tabController = useTabController(initialLength: 5);
+    final tabController = useTabController(initialLength: 7);
 
     return Scaffold(
       appBar: AppBar(
@@ -88,6 +88,8 @@ class TeamBuilderScreen extends HookConsumerWidget {
             Tab(text: 'LINE 3'),
             Tab(text: 'LINE 4'),
             Tab(text: 'GOALIES'),
+            Tab(text: 'POWER PLAY'),
+            Tab(text: 'BOXPLAY'),
           ],
         ),
       ),
@@ -101,6 +103,8 @@ class TeamBuilderScreen extends HookConsumerWidget {
               _LineView(lineIndex: 2, lineup: lineup),
               _LineView(lineIndex: 3, lineup: lineup),
               _GoalieView(lineup: lineup),
+              _PowerPlayView(lineup: lineup),
+              _BoxplayView(lineup: lineup),
             ],
           );
         },
@@ -201,6 +205,94 @@ class _LineView extends StatelessWidget {
   }
 }
 
+class _PowerPlayView extends StatelessWidget {
+  final LineupState lineup;
+
+  const _PowerPlayView({required this.lineup});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _UnitHeader(title: 'PP UNIT 1'),
+        _SpecialUnitRow(lineIndex: 5, slots: ['F1', 'F2', 'F3', 'D1', 'D2'], lineup: lineup),
+        const SizedBox(height: 32),
+        _UnitHeader(title: 'PP UNIT 2'),
+        _SpecialUnitRow(lineIndex: 6, slots: ['F1', 'F2', 'F3', 'D1', 'D2'], lineup: lineup),
+      ],
+    );
+  }
+}
+
+class _BoxplayView extends StatelessWidget {
+  final LineupState lineup;
+
+  const _BoxplayView({required this.lineup});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _UnitHeader(title: 'PK UNIT 1'),
+        _SpecialUnitRow(lineIndex: 7, slots: ['F1', 'F2', 'D1', 'D2'], lineup: lineup),
+        const SizedBox(height: 32),
+        _UnitHeader(title: 'PK UNIT 2'),
+        _SpecialUnitRow(lineIndex: 8, slots: ['F1', 'F2', 'D1', 'D2'], lineup: lineup),
+      ],
+    );
+  }
+}
+
+class _UnitHeader extends StatelessWidget {
+  final String title;
+  const _UnitHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Text(
+        title,
+        style: const TextStyle(color: PuckeyColors.mint, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+      ),
+    );
+  }
+}
+
+class _SpecialUnitRow extends StatelessWidget {
+  final int lineIndex;
+  final List<String> slots;
+  final LineupState lineup;
+
+  const _SpecialUnitRow({required this.lineIndex, required this.slots, required this.lineup});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: PuckeyColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: PuckeyColors.surfaceLight),
+      ),
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 16,
+        alignment: WrapAlignment.center,
+        children: slots.map((s) => _LineupSlot(
+          lineIndex: lineIndex,
+          slotLabel: s,
+          player: lineup.getPlayer(lineIndex, s),
+          tag: lineup.getTag(lineIndex, s),
+          small: true,
+        )).toList(),
+      ),
+    );
+  }
+}
+
 class _GoalieView extends StatelessWidget {
   final LineupState lineup;
 
@@ -247,11 +339,16 @@ class _LineupSlot extends ConsumerWidget {
   final String slotLabel;
   final Player? player;
   final String? tag;
+  final bool small;
 
-  const _LineupSlot({required this.lineIndex, required this.slotLabel, this.player, this.tag});
+  const _LineupSlot({required this.lineIndex, required this.slotLabel, this.player, this.tag, this.small = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final size = small ? 60.0 : 75.0;
+    final fontSize = small ? 24.0 : 30.0;
+    final tagSize = small ? 7.0 : 8.0;
+
     return GestureDetector(
       onLongPress: player != null ? () => _showTagPicker(context, ref) : null,
       onTap: () => _showSelectionSheet(context, ref),
@@ -261,8 +358,8 @@ class _LineupSlot extends ConsumerWidget {
             clipBehavior: Clip.none,
             children: [
               Container(
-                width: 75,
-                height: 75,
+                width: size,
+                height: size,
                 decoration: BoxDecoration(
                   color: PuckeyColors.background.withOpacity(0.8),
                   shape: BoxShape.circle,
@@ -282,9 +379,9 @@ class _LineupSlot extends ConsumerWidget {
                   child: player != null
                       ? Text(
                           player!.lastName.substring(0, 1),
-                          style: const TextStyle(color: PuckeyColors.mint, fontSize: 30, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: PuckeyColors.mint, fontSize: fontSize, fontWeight: FontWeight.bold),
                         )
-                      : const Icon(Icons.add, color: PuckeyColors.teal, size: 30),
+                      : Icon(Icons.add, color: PuckeyColors.teal, size: small ? 24 : 30),
                 ),
               ),
               if (tag != null)
@@ -300,7 +397,7 @@ class _LineupSlot extends ConsumerWidget {
                     ),
                     child: Text(
                       tag!.toUpperCase(),
-                      style: const TextStyle(color: PuckeyColors.background, fontSize: 8, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: PuckeyColors.background, fontSize: tagSize, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -308,14 +405,16 @@ class _LineupSlot extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            width: size + 10,
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
             decoration: BoxDecoration(
               color: player != null ? PuckeyColors.mint : PuckeyColors.teal,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               player != null ? player!.lastName : slotLabel,
-              style: const TextStyle(color: PuckeyColors.background, fontWeight: FontWeight.bold, fontSize: 11),
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: PuckeyColors.background, fontWeight: FontWeight.bold, fontSize: 10),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -465,7 +564,16 @@ class _PlayerSelector extends HookConsumerWidget {
                   // Position filter
                   if (slotLabel.startsWith('G') && p.position != 'G') return false;
                   if ((slotLabel == 'LD' || slotLabel == 'RD') && p.position != 'D') return false;
-                  if ((slotLabel == 'LW' || slotLabel == 'C' || slotLabel == 'RW') && p.position != 'F') return false;
+                  if ((slotLabel == 'LW' || slotLabel == 'C' || slotLabel == 'RW' || slotLabel.startsWith('F')) && p.position != 'F') {
+                     // Check for general 'F' slot in special teams
+                     if (slotLabel.startsWith('F') && p.position == 'F') return true;
+                     return false;
+                  }
+                  if (slotLabel.startsWith('D') && p.position != 'D' && p.position != 'G') {
+                    // Special teams D slots
+                    if (p.position == 'D') return true;
+                    return false;
+                  }
 
                   // League filter
                   if (selectedLeague.value != 'All' && p.league != selectedLeague.value) return false;
