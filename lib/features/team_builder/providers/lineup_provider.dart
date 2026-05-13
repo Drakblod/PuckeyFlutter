@@ -1,78 +1,80 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:puckey/core/database/app_database.dart';
+import 'package:puckey/core/services/storage_service.dart';
 
 class LineupState {
-  final Player? leftWing;
-  final Player? center;
-  final Player? rightWing;
-  final Player? leftDefense;
-  final Player? rightDefense;
-  final Player? goalie;
+  final Map<int, Map<String, Player>> slots;
 
-  LineupState({
-    this.leftWing,
-    this.center,
-    this.rightWing,
-    this.leftDefense,
-    this.rightDefense,
-    this.goalie,
-  });
+  LineupState({this.slots = const {}});
 
-  LineupState copyWith({
-    Player? Function()? leftWing,
-    Player? Function()? center,
-    Player? Function()? rightWing,
-    Player? Function()? leftDefense,
-    Player? Function()? rightDefense,
-    Player? Function()? goalie,
-  }) {
-    return LineupState(
-      leftWing: leftWing != null ? leftWing() : this.leftWing,
-      center: center != null ? center() : this.center,
-      rightWing: rightWing != null ? rightWing() : this.rightWing,
-      leftDefense: leftDefense != null ? leftDefense() : this.leftDefense,
-      rightDefense: rightDefense != null ? rightDefense() : this.rightDefense,
-      goalie: goalie != null ? goalie() : this.goalie,
-    );
+  LineupState copyWith({Map<int, Map<String, Player>>? slots}) {
+    return LineupState(slots: slots ?? this.slots);
   }
-}
 
-class LineupNotifier extends StateNotifier<LineupState> {
-  LineupNotifier() : super(LineupState());
-
-  void setPlayer(String slot, Player? player) {
-    switch (slot) {
-      case 'LW':
-        state = state.copyWith(leftWing: () => player);
-        break;
-      case 'C':
-        state = state.copyWith(center: () => player);
-        break;
-      case 'RW':
-        state = state.copyWith(rightWing: () => player);
-        break;
-      case 'LD':
-        state = state.copyWith(leftDefense: () => player);
-        break;
-      case 'RD':
-        state = state.copyWith(rightDefense: () => player);
-        break;
-      case 'G':
-        state = state.copyWith(goalie: () => player);
-        break;
-    }
+  Player? getPlayer(int lineIndex, String slot) {
+    return slots[lineIndex]?[slot];
   }
 
   bool isPlayerInLineup(int id) {
-    return state.leftWing?.id == id ||
-        state.center?.id == id ||
-        state.rightWing?.id == id ||
-        state.leftDefense?.id == id ||
-        state.rightDefense?.id == id ||
-        state.goalie?.id == id;
+    for (var line in slots.values) {
+      for (var player in line.values) {
+        if (player.id == id) return true;
+      }
+    }
+    return false;
   }
 }
 
-final lineupProvider = StateNotifierProvider<LineupNotifier, LineupState>((ref) {
-  return LineupNotifier();
+class LineupNotifier extends StateNotifier<AsyncValue<LineupState>> {
+  final StorageService _storage;
+
+  LineupNotifier(this._storage) : super(const AsyncValue.loading()) {
+    _loadLineup();
+  }
+
+  Future<void> _loadLineup() async {
+    try {
+      final savedSlots = await _storage.getLineup();
+      final allPlayers = await _storage.getAllPlayers();
+      
+      final playerMap = {for (var p in allPlayers) p.id: p};
+      
+      final Map<int, Map<String, Player>> slots = {};
+      
+      for (final slot in savedSlots) {
+        final player = playerMap[slot.playerId];
+        if (player != null) {
+          slots.putIfAbsent(slot.lineIndex, () => {});
+          slots[slot.lineIndex]![slot.slot] = player;
+        }
+      }
+      
+      state = AsyncValue.data(LineupState(slots: slots));
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> setPlayer(int lineIndex, String slot, Player? player) async {
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    final newSlots = Map<int, Map<String, Player>>.from(currentState.slots);
+    newSlots.putIfAbsent(lineIndex, () => {});
+
+    if (player == null) {
+      newSlots[lineIndex]!.remove(slot);
+      await _storage.removeLineupSlot(lineIndex, slot);
+    } else {
+      newSlots[lineIndex]![slot] = player;
+      await _storage.saveLineupSlot(lineIndex, slot, player.id);
+    }
+
+    state = AsyncValue.data(currentState.copyWith(slots: newSlots));
+  }
+}
+
+final lineupProvider = StateNotifierProvider<LineupNotifier, AsyncValue<LineupState>>((ref) {
+  final storage = ref.watch(storageServiceProvider);
+  return LineupNotifier(storage);
 });

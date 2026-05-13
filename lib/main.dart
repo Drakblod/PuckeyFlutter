@@ -10,7 +10,14 @@ Future<void> main() async {
   
   final db = AppDatabase();
   final storageService = StorageService(db);
-  await storageService.seedMockData();
+  
+  try {
+    // Only try to seed if we can open the database
+    // On web, this might fail if WASM files are missing
+    await storageService.seedMockData().timeout(const Duration(seconds: 2));
+  } catch (e) {
+    debugPrint('Database initialization warning: $e');
+  }
 
   runApp(
     ProviderScope(

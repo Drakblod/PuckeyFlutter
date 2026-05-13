@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:puckey/core/database/app_database.dart';
@@ -8,6 +11,44 @@ class PlayerDetailScreen extends ConsumerWidget {
   final Player player;
 
   const PlayerDetailScreen({super.key, required this.player});
+
+  List<double> _calculateAttributes() {
+    // Local AI Simulation Math
+    double clamp(double val) => val.clamp(30.0, 100.0);
+    final gp = max(player.gamesPlayed, 1);
+
+    if (player.position == 'G') {
+      return [
+        clamp(75 + player.age * 0.2), // Reflexes
+        clamp(85 - player.age * 0.3), // Positioning
+        clamp(70 + (gp * 0.5)), // Rebounds
+        clamp(90 - (player.age * 0.5)), // Agility
+        clamp(75 + (gp * 0.3)), // Vision
+      ];
+    } else {
+      final isDef = player.position == 'D';
+      final gPerGame = player.goals / gp;
+      final aPerGame = player.assists / gp;
+      final ptsPerGame = player.points / gp;
+
+      return [
+        clamp((gPerGame * 200) + (isDef ? 40 : 50)), // Shooting
+        clamp((aPerGame * 150) + (isDef ? 50 : 40)), // Playmaking
+        clamp(60 + (player.plusMinus * 1.5) + (isDef ? 20 : 0)), // Defense
+        clamp(60 + (ptsPerGame * 25)), // Skating
+        clamp(
+          50 + (player.penaltyMinutes * 0.5) + (isDef ? 20 : 0),
+        ), // Physicality
+      ];
+    }
+  }
+
+  List<String> _getAttributeLabels() {
+    if (player.position == 'G') {
+      return ['Reflexes', 'Position', 'Rebounds', 'Agility', 'Vision'];
+    }
+    return ['Shooting', 'Playmaking', 'Defense', 'Skating', 'Physicality'];
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,6 +64,8 @@ class PlayerDetailScreen extends ConsumerWidget {
                 children: [
                   _buildHeader(),
                   const SizedBox(height: 32),
+                  _buildSpiderChart(),
+                  const SizedBox(height: 32),
                   _buildStatsGrid(),
                   const SizedBox(height: 40),
                   _buildActionButtons(context, ref),
@@ -30,8 +73,91 @@ class PlayerDetailScreen extends ConsumerWidget {
               ),
             ),
           ),
+          SliverToBoxAdapter(
+            child: SizedBox(height: MediaQuery.of(context).padding.bottom + 40),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSpiderChart() {
+    final attributes = _calculateAttributes();
+    final labels = _getAttributeLabels();
+    final color = player.position == 'G'
+        ? Colors.purpleAccent
+        : (player.position == 'D' ? PuckeyColors.teal : PuckeyColors.mint);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'AI SCOUTING REPORT',
+          style: TextStyle(
+            color: PuckeyColors.slate,
+            letterSpacing: 1.2,
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          height: 300,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: PuckeyColors.surface,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: PuckeyColors.surfaceLight),
+          ),
+          child: RadarChart(
+            RadarChartData(
+              dataSets: [
+                RadarDataSet(
+                  fillColor: color.withOpacity(0.2),
+                  borderColor: color,
+                  entryRadius: 4,
+                  dataEntries: attributes
+                      .map((val) => RadarEntry(value: val))
+                      .toList(),
+                  borderWidth: 2,
+                ),
+              ],
+              radarBackgroundColor: Colors.transparent,
+              borderData: FlBorderData(show: false),
+              radarBorderData: const BorderSide(
+                color: PuckeyColors.surfaceLight,
+                width: 1,
+              ),
+              tickCount: 5,
+              ticksTextStyle: const TextStyle(
+                color: Colors.transparent,
+                fontSize: 10,
+              ),
+              tickBorderData: const BorderSide(
+                color: PuckeyColors.surfaceLight,
+                width: 1,
+              ),
+              gridBorderData: const BorderSide(
+                color: PuckeyColors.surfaceLight,
+                width: 1,
+              ),
+              getTitle: (index, angle) {
+                return RadarChartTitle(
+                  text: labels[index],
+                  angle: angle,
+                  positionPercentageOffset: 0.1,
+                );
+              },
+              titleTextStyle: const TextStyle(
+                color: PuckeyColors.iceBlue,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            duration: const Duration(milliseconds: 400),
+          ),
+        ),
+      ],
     );
   }
 
@@ -43,7 +169,6 @@ class PlayerDetailScreen extends ConsumerWidget {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            // Placeholder for player image
             Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -56,11 +181,10 @@ class PlayerDetailScreen extends ConsumerWidget {
                 child: Icon(
                   Icons.person,
                   size: 120,
-                  color: PuckeyColors.teal.withValues(alpha: 0.2),
+                  color: PuckeyColors.teal.withOpacity(0.2),
                 ),
               ),
             ),
-            // Glassmorphic overlay for the name in expanded state
             Positioned(
               bottom: 0,
               left: 0,
@@ -73,7 +197,7 @@ class PlayerDetailScreen extends ConsumerWidget {
                     end: Alignment.topCenter,
                     colors: [
                       PuckeyColors.background,
-                      PuckeyColors.background.withValues(alpha: 0),
+                      PuckeyColors.background.withOpacity(0),
                     ],
                   ),
                 ),
@@ -108,7 +232,10 @@ class PlayerDetailScreen extends ConsumerWidget {
             const SizedBox(width: 12),
             Text(
               player.league,
-              style: const TextStyle(color: PuckeyColors.slate, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: PuckeyColors.slate,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
@@ -123,10 +250,7 @@ class PlayerDetailScreen extends ConsumerWidget {
         ),
         Text(
           player.team,
-          style: const TextStyle(
-            fontSize: 20,
-            color: PuckeyColors.teal,
-          ),
+          style: const TextStyle(fontSize: 20, color: PuckeyColors.teal),
         ),
       ],
     );
@@ -156,10 +280,27 @@ class PlayerDetailScreen extends ConsumerWidget {
           childAspectRatio: 1.5,
           children: [
             _StatItem(label: 'GAMES', value: player.gamesPlayed.toString()),
-            _StatItem(label: 'GOALS', value: player.goals.toString()),
-            _StatItem(label: 'ASSISTS', value: player.assists.toString()),
-            _StatItem(label: 'POINTS', value: player.points.toString(), highlight: true),
-            _StatItem(label: '+ / -', value: player.plusMinus > 0 ? '+${player.plusMinus}' : player.plusMinus.toString()),
+            if (player.position != 'G') ...[
+              _StatItem(label: 'GOALS', value: player.goals.toString()),
+              _StatItem(label: 'ASSISTS', value: player.assists.toString()),
+              _StatItem(
+                label: 'POINTS',
+                value: player.points.toString(),
+                highlight: true,
+              ),
+              _StatItem(
+                label: '+ / -',
+                value: player.plusMinus > 0
+                    ? '+${player.plusMinus}'
+                    : player.plusMinus.toString(),
+              ),
+            ] else ...[
+              _StatItem(
+                label: 'AGE',
+                value: player.age.toString(),
+                highlight: true,
+              ),
+            ],
             _StatItem(label: 'PIM', value: player.penaltyMinutes.toString()),
           ],
         ),
@@ -171,14 +312,14 @@ class PlayerDetailScreen extends ConsumerWidget {
     return Column(
       children: [
         ElevatedButton(
-          onPressed: () {
-            // TODO: Implement Add to Lineup
-          },
+          onPressed: () {},
           style: ElevatedButton.styleFrom(
             backgroundColor: PuckeyColors.teal,
             foregroundColor: PuckeyColors.background,
             minimumSize: const Size(double.infinity, 56),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
           ),
           child: const Text(
             'ADD TO LINEUP',
@@ -194,14 +335,18 @@ class PlayerDetailScreen extends ConsumerWidget {
             foregroundColor: PuckeyColors.iceBlue,
             side: const BorderSide(color: PuckeyColors.surfaceLight),
             minimumSize: const Size(double.infinity, 56),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 player.isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: player.isFavorite ? PuckeyColors.error : PuckeyColors.slate,
+                color: player.isFavorite
+                    ? PuckeyColors.error
+                    : PuckeyColors.slate,
               ),
               const SizedBox(width: 8),
               const Text('SAVE TO MY SCOUTING'),
@@ -232,7 +377,9 @@ class _StatItem extends StatelessWidget {
         color: PuckeyColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: highlight ? PuckeyColors.teal.withValues(alpha: 0.3) : PuckeyColors.surfaceLight,
+          color: highlight
+              ? PuckeyColors.teal.withOpacity(0.3)
+              : PuckeyColors.surfaceLight,
         ),
       ),
       child: Column(

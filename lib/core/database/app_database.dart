@@ -1,10 +1,5 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
-import 'package:sqlite3/sqlite3.dart';
+import 'package:puckey/core/database/connection/connection.dart';
 
 part 'app_database.g.dart';
 
@@ -30,12 +25,33 @@ class Players extends Table {
   BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
 }
 
-@DriftDatabase(tables: [Players])
+class LineupSlots extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get lineIndex => integer()(); // 0-3 for lines 1-4, 4 for goalies
+  TextColumn get slot => text()(); // LW, C, RW, LD, RD, G1, G2
+  IntColumn get playerId => integer().references(Players, #id)();
+}
+
+@DriftDatabase(tables: [Players, LineupSlots])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase() : super(openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2; // Bump schema version
+  
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          await m.createTable(lineupSlots);
+        }
+      },
+    );
+  }
 
   Future<List<Player>> getAllPlayers() => select(players).get();
   
@@ -50,24 +66,28 @@ class AppDatabase extends _$AppDatabase {
           ..where((t) => t.firstName.contains(query) | t.lastName.contains(query)))
         .get();
   }
+
+  // Lineup methods
+  Future<List<LineupSlot>> getLineup() => select(lineupSlots).get();
+  
+  Future<void> saveLineupSlot(int lineIdx, String posSlot, int pId) async {
+    await (delete(lineupSlots)
+          ..where((t) => t.lineIndex.equals(lineIdx) & t.slot.equals(posSlot)))
+        .go();
+    await into(lineupSlots).insert(LineupSlotsCompanion.insert(
+      lineIndex: lineIdx,
+      slot: posSlot,
+      playerId: pId,
+    ));
+  }
+
+  Future<void> removeLineupSlot(int lineIdx, String posSlot) async {
+    await (delete(lineupSlots)
+          ..where((t) => t.lineIndex.equals(lineIdx) & t.slot.equals(posSlot)))
+        .go();
+  }
 }
 
 extension PlayerExtension on Player {
   String get fullName => '$firstName $lastName';
-}
-
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'puckey.db'));
-
-    if (Platform.isAndroid) {
-      // The workaround is often no longer needed on modern Android, but can be added if issues arise.
-    }
-
-    final cachebase = await getTemporaryDirectory();
-    sqlite3.tempDirectory = cachebase.path;
-
-    return NativeDatabase.createInBackground(file);
-  });
 }
