@@ -25,29 +25,46 @@ class Players extends Table {
   BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
 }
 
+class Teams extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
 class LineupSlots extends Table {
   IntColumn get id => integer().autoIncrement()();
+  IntColumn get teamId => integer().references(Teams, #id).withDefault(const Constant(1))();
   IntColumn get lineIndex => integer()(); // 0-3 for lines 1-4, 4 for goalies
   TextColumn get slot => text()(); // LW, C, RW, LD, RD, G1, G2
   IntColumn get playerId => integer().references(Players, #id)();
+  TextColumn get roleTag => text().nullable()();
 }
 
-@DriftDatabase(tables: [Players, LineupSlots])
+@DriftDatabase(tables: [Players, LineupSlots, Teams])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(openConnection());
 
   @override
-  int get schemaVersion => 2; // Bump schema version
+  int get schemaVersion => 3;
   
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
         await m.createAll();
+        // Create a default team
+        await into(teams).insert(TeamsCompanion.insert(name: 'Default Team'));
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 2) {
           await m.createTable(lineupSlots);
+        }
+        if (from < 3) {
+          await m.createTable(teams);
+          await m.addColumn(lineupSlots, lineupSlots.teamId);
+          await m.addColumn(lineupSlots, lineupSlots.roleTag);
+          // Create a default team if not exists
+          await into(teams).insert(TeamsCompanion.insert(name: 'Default Team'));
         }
       },
     );
@@ -67,24 +84,41 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 
+  // Team methods
+  Future<List<Team>> getTeams() => select(teams).get();
+  Future<int> createTeam(String name) => into(teams).insert(TeamsCompanion.insert(name: name));
+  Future<void> deleteTeam(int id) async {
+    await (delete(lineupSlots)..where((t) => t.teamId.equals(id))).go();
+    await (delete(teams)..where((t) => t.id.equals(id))).go();
+  }
+
   // Lineup methods
-  Future<List<LineupSlot>> getLineup() => select(lineupSlots).get();
+  Future<List<LineupSlot>> getLineup(int teamId) => 
+    (select(lineupSlots)..where((t) => t.teamId.equals(teamId))).get();
   
-  Future<void> saveLineupSlot(int lineIdx, String posSlot, int pId) async {
+  Future<void> saveLineupSlot(int teamId, int lineIdx, String posSlot, int pId, {String? tag}) async {
     await (delete(lineupSlots)
-          ..where((t) => t.lineIndex.equals(lineIdx) & t.slot.equals(posSlot)))
+          ..where((t) => t.teamId.equals(teamId) & t.lineIndex.equals(lineIdx) & t.slot.equals(posSlot)))
         .go();
     await into(lineupSlots).insert(LineupSlotsCompanion.insert(
+      teamId: Value(teamId),
       lineIndex: lineIdx,
       slot: posSlot,
       playerId: pId,
+      roleTag: Value(tag),
     ));
   }
 
-  Future<void> removeLineupSlot(int lineIdx, String posSlot) async {
+  Future<void> removeLineupSlot(int teamId, int lineIdx, String posSlot) async {
     await (delete(lineupSlots)
-          ..where((t) => t.lineIndex.equals(lineIdx) & t.slot.equals(posSlot)))
+          ..where((t) => t.teamId.equals(teamId) & t.lineIndex.equals(lineIdx) & t.slot.equals(posSlot)))
         .go();
+  }
+
+  Future<void> updateSlotTag(int teamId, int lineIdx, String posSlot, String? tag) async {
+    await (update(lineupSlots)
+      ..where((t) => t.teamId.equals(teamId) & t.lineIndex.equals(lineIdx) & t.slot.equals(posSlot)))
+      .write(LineupSlotsCompanion(roleTag: Value(tag)));
   }
 }
 

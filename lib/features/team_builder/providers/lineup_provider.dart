@@ -4,15 +4,26 @@ import 'package:puckey/core/services/storage_service.dart';
 
 class LineupState {
   final Map<int, Map<String, Player>> slots;
+  final Map<int, Map<String, String?>> tags;
 
-  LineupState({this.slots = const {}});
+  LineupState({this.slots = const {}, this.tags = const {}});
 
-  LineupState copyWith({Map<int, Map<String, Player>>? slots}) {
-    return LineupState(slots: slots ?? this.slots);
+  LineupState copyWith({
+    Map<int, Map<String, Player>>? slots,
+    Map<int, Map<String, String?>>? tags,
+  }) {
+    return LineupState(
+      slots: slots ?? this.slots,
+      tags: tags ?? this.tags,
+    );
   }
 
   Player? getPlayer(int lineIndex, String slot) {
     return slots[lineIndex]?[slot];
+  }
+
+  String? getTag(int lineIndex, String slot) {
+    return tags[lineIndex]?[slot];
   }
 
   bool isPlayerInLineup(int id) {
@@ -27,29 +38,34 @@ class LineupState {
 
 class LineupNotifier extends StateNotifier<AsyncValue<LineupState>> {
   final StorageService _storage;
+  final int _teamId;
 
-  LineupNotifier(this._storage) : super(const AsyncValue.loading()) {
+  LineupNotifier(this._storage, this._teamId) : super(const AsyncValue.loading()) {
     _loadLineup();
   }
 
   Future<void> _loadLineup() async {
     try {
-      final savedSlots = await _storage.getLineup();
+      final savedSlots = await _storage.getLineup(_teamId);
       final allPlayers = await _storage.getAllPlayers();
       
       final playerMap = {for (var p in allPlayers) p.id: p};
       
       final Map<int, Map<String, Player>> slots = {};
+      final Map<int, Map<String, String?>> tags = {};
       
       for (final slot in savedSlots) {
         final player = playerMap[slot.playerId];
         if (player != null) {
           slots.putIfAbsent(slot.lineIndex, () => {});
           slots[slot.lineIndex]![slot.slot] = player;
+          
+          tags.putIfAbsent(slot.lineIndex, () => {});
+          tags[slot.lineIndex]![slot.slot] = slot.roleTag;
         }
       }
       
-      state = AsyncValue.data(LineupState(slots: slots));
+      state = AsyncValue.data(LineupState(slots: slots, tags: tags));
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -59,22 +75,45 @@ class LineupNotifier extends StateNotifier<AsyncValue<LineupState>> {
     final currentState = state.value;
     if (currentState == null) return;
 
-    final newSlots = Map<int, Map<String, Player>>.from(currentState.slots);
+    final newSlots = Map<int, Map<String, Player>>.from(
+      currentState.slots.map((k, v) => MapEntry(k, Map<String, Player>.from(v)))
+    );
     newSlots.putIfAbsent(lineIndex, () => {});
 
     if (player == null) {
       newSlots[lineIndex]!.remove(slot);
-      await _storage.removeLineupSlot(lineIndex, slot);
+      await _storage.removeLineupSlot(_teamId, lineIndex, slot);
     } else {
       newSlots[lineIndex]![slot] = player;
-      await _storage.saveLineupSlot(lineIndex, slot, player.id);
+      await _storage.saveLineupSlot(_teamId, lineIndex, slot, player.id);
     }
 
     state = AsyncValue.data(currentState.copyWith(slots: newSlots));
   }
+
+  Future<void> updateTag(int lineIndex, String slot, String? tag) async {
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    final newTags = Map<int, Map<String, String?>>.from(
+      currentState.tags.map((k, v) => MapEntry(k, Map<String, String?>.from(v)))
+    );
+    newTags.putIfAbsent(lineIndex, () => {});
+    newTags[lineIndex]![slot] = tag;
+
+    await _storage.updateSlotTag(_teamId, lineIndex, slot, tag);
+    state = AsyncValue.data(currentState.copyWith(tags: newTags));
+  }
 }
+
+final selectedTeamIdProvider = StateProvider<int>((ref) => 1);
+
+final teamsProvider = FutureProvider<List<Team>>((ref) {
+  return ref.watch(storageServiceProvider).getTeams();
+});
 
 final lineupProvider = StateNotifierProvider<LineupNotifier, AsyncValue<LineupState>>((ref) {
   final storage = ref.watch(storageServiceProvider);
-  return LineupNotifier(storage);
+  final teamId = ref.watch(selectedTeamIdProvider);
+  return LineupNotifier(storage, teamId);
 });

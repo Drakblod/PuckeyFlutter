@@ -234,6 +234,102 @@ return map;
 @override
 String toString() {return (StringBuffer('PlayersCompanion(')..write('id: $id, ')..write('firstName: $firstName, ')..write('lastName: $lastName, ')..write('team: $team, ')..write('position: $position, ')..write('age: $age, ')..write('gamesPlayed: $gamesPlayed, ')..write('goals: $goals, ')..write('assists: $assists, ')..write('points: $points, ')..write('plusMinus: $plusMinus, ')..write('penaltyMinutes: $penaltyMinutes, ')..write('league: $league, ')..write('imageUrl: $imageUrl, ')..write('isFavorite: $isFavorite')..write(')')).toString();}
 }
+class $TeamsTable extends Teams with TableInfo<$TeamsTable, Team>{
+@override final GeneratedDatabase attachedDatabase;
+final String? _alias;
+$TeamsTable(this.attachedDatabase, [this._alias]);
+static const VerificationMeta _idMeta = const VerificationMeta('id');
+@override
+late final GeneratedColumn<int> id = GeneratedColumn<int>('id', aliasedName, false, hasAutoIncrement: true, type: DriftSqlType.int, requiredDuringInsert: false, defaultConstraints: GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+static const VerificationMeta _nameMeta = const VerificationMeta('name');
+@override
+late final GeneratedColumn<String> name = GeneratedColumn<String>('name', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+static const VerificationMeta _createdAtMeta = const VerificationMeta('createdAt');
+@override
+late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>('created_at', aliasedName, false, type: DriftSqlType.dateTime, requiredDuringInsert: false, defaultValue: currentDateAndTime);
+@override
+List<GeneratedColumn> get $columns => [id, name, createdAt];
+@override
+String get aliasedName => _alias ?? actualTableName;
+@override
+ String get actualTableName => $name;
+static const String $name = 'teams';
+@override
+VerificationContext validateIntegrity(Insertable<Team> instance, {bool isInserting = false}) {
+final context = VerificationContext();
+final data = instance.toColumns(true);
+if (data.containsKey('id')) {
+context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));}if (data.containsKey('name')) {
+context.handle(_nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));} else if (isInserting) {
+context.missing(_nameMeta);
+}
+if (data.containsKey('created_at')) {
+context.handle(_createdAtMeta, createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));}return context;
+}
+@override
+Set<GeneratedColumn> get $primaryKey => {id};
+@override Team map(Map<String, dynamic> data, {String? tablePrefix})  {
+final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';return Team(id: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}id'])!, name: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}name'])!, createdAt: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!, );
+}
+@override
+$TeamsTable createAlias(String alias) {
+return $TeamsTable(attachedDatabase, alias);}}class Team extends DataClass implements Insertable<Team> 
+{
+final int id;
+final String name;
+final DateTime createdAt;
+const Team({required this.id, required this.name, required this.createdAt});@override
+Map<String, Expression> toColumns(bool nullToAbsent) {
+final map = <String, Expression> {};map['id'] = Variable<int>(id);
+map['name'] = Variable<String>(name);
+map['created_at'] = Variable<DateTime>(createdAt);
+return map; 
+}
+TeamsCompanion toCompanion(bool nullToAbsent) {
+return TeamsCompanion(id: Value(id),name: Value(name),createdAt: Value(createdAt),);
+}
+factory Team.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+serializer ??= driftRuntimeOptions.defaultSerializer;
+return Team(id: serializer.fromJson<int>(json['id']),name: serializer.fromJson<String>(json['name']),createdAt: serializer.fromJson<DateTime>(json['createdAt']),);}
+@override Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+serializer ??= driftRuntimeOptions.defaultSerializer;
+return <String, dynamic>{
+'id': serializer.toJson<int>(id),'name': serializer.toJson<String>(name),'createdAt': serializer.toJson<DateTime>(createdAt),};}Team copyWith({int? id,String? name,DateTime? createdAt}) => Team(id: id ?? this.id,name: name ?? this.name,createdAt: createdAt ?? this.createdAt,);Team copyWithCompanion(TeamsCompanion data) {
+return Team(
+id: data.id.present ? data.id.value : this.id,name: data.name.present ? data.name.value : this.name,createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,);
+}
+@override
+String toString() {return (StringBuffer('Team(')..write('id: $id, ')..write('name: $name, ')..write('createdAt: $createdAt')..write(')')).toString();}
+@override
+ int get hashCode => Object.hash(id, name, createdAt);@override
+bool operator ==(Object other) => identical(this, other) || (other is Team && other.id == this.id && other.name == this.name && other.createdAt == this.createdAt);
+}class TeamsCompanion extends UpdateCompanion<Team> {
+final Value<int> id;
+final Value<String> name;
+final Value<DateTime> createdAt;
+const TeamsCompanion({this.id = const Value.absent(),this.name = const Value.absent(),this.createdAt = const Value.absent(),});
+TeamsCompanion.insert({this.id = const Value.absent(),required String name,this.createdAt = const Value.absent(),}): name = Value(name);
+static Insertable<Team> custom({Expression<int>? id, 
+Expression<String>? name, 
+Expression<DateTime>? createdAt, 
+}) {
+return RawValuesInsertable({if (id != null)'id': id,if (name != null)'name': name,if (createdAt != null)'created_at': createdAt,});
+}TeamsCompanion copyWith({Value<int>? id, Value<String>? name, Value<DateTime>? createdAt}) {
+return TeamsCompanion(id: id ?? this.id,name: name ?? this.name,createdAt: createdAt ?? this.createdAt,);
+}
+@override
+Map<String, Expression> toColumns(bool nullToAbsent) {
+final map = <String, Expression> {};if (id.present) {
+map['id'] = Variable<int>(id.value);}
+if (name.present) {
+map['name'] = Variable<String>(name.value);}
+if (createdAt.present) {
+map['created_at'] = Variable<DateTime>(createdAt.value);}
+return map; 
+}
+@override
+String toString() {return (StringBuffer('TeamsCompanion(')..write('id: $id, ')..write('name: $name, ')..write('createdAt: $createdAt')..write(')')).toString();}
+}
 class $LineupSlotsTable extends LineupSlots with TableInfo<$LineupSlotsTable, LineupSlot>{
 @override final GeneratedDatabase attachedDatabase;
 final String? _alias;
@@ -241,6 +337,9 @@ $LineupSlotsTable(this.attachedDatabase, [this._alias]);
 static const VerificationMeta _idMeta = const VerificationMeta('id');
 @override
 late final GeneratedColumn<int> id = GeneratedColumn<int>('id', aliasedName, false, hasAutoIncrement: true, type: DriftSqlType.int, requiredDuringInsert: false, defaultConstraints: GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+static const VerificationMeta _teamIdMeta = const VerificationMeta('teamId');
+@override
+late final GeneratedColumn<int> teamId = GeneratedColumn<int>('team_id', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: false, defaultConstraints: GeneratedColumn.constraintIsAlways('REFERENCES teams (id)'), defaultValue: const Constant(1));
 static const VerificationMeta _lineIndexMeta = const VerificationMeta('lineIndex');
 @override
 late final GeneratedColumn<int> lineIndex = GeneratedColumn<int>('line_index', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
@@ -250,8 +349,11 @@ late final GeneratedColumn<String> slot = GeneratedColumn<String>('slot', aliase
 static const VerificationMeta _playerIdMeta = const VerificationMeta('playerId');
 @override
 late final GeneratedColumn<int> playerId = GeneratedColumn<int>('player_id', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true, defaultConstraints: GeneratedColumn.constraintIsAlways('REFERENCES players (id)'));
+static const VerificationMeta _roleTagMeta = const VerificationMeta('roleTag');
 @override
-List<GeneratedColumn> get $columns => [id, lineIndex, slot, playerId];
+late final GeneratedColumn<String> roleTag = GeneratedColumn<String>('role_tag', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
+@override
+List<GeneratedColumn> get $columns => [id, teamId, lineIndex, slot, playerId, roleTag];
 @override
 String get aliasedName => _alias ?? actualTableName;
 @override
@@ -262,7 +364,8 @@ VerificationContext validateIntegrity(Insertable<LineupSlot> instance, {bool isI
 final context = VerificationContext();
 final data = instance.toColumns(true);
 if (data.containsKey('id')) {
-context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));}if (data.containsKey('line_index')) {
+context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));}if (data.containsKey('team_id')) {
+context.handle(_teamIdMeta, teamId.isAcceptableOrUnknown(data['team_id']!, _teamIdMeta));}if (data.containsKey('line_index')) {
 context.handle(_lineIndexMeta, lineIndex.isAcceptableOrUnknown(data['line_index']!, _lineIndexMeta));} else if (isInserting) {
 context.missing(_lineIndexMeta);
 }
@@ -274,87 +377,101 @@ if (data.containsKey('player_id')) {
 context.handle(_playerIdMeta, playerId.isAcceptableOrUnknown(data['player_id']!, _playerIdMeta));} else if (isInserting) {
 context.missing(_playerIdMeta);
 }
-return context;
+if (data.containsKey('role_tag')) {
+context.handle(_roleTagMeta, roleTag.isAcceptableOrUnknown(data['role_tag']!, _roleTagMeta));}return context;
 }
 @override
 Set<GeneratedColumn> get $primaryKey => {id};
 @override LineupSlot map(Map<String, dynamic> data, {String? tablePrefix})  {
-final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';return LineupSlot(id: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}id'])!, lineIndex: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}line_index'])!, slot: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}slot'])!, playerId: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}player_id'])!, );
+final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';return LineupSlot(id: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}id'])!, teamId: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}team_id'])!, lineIndex: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}line_index'])!, slot: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}slot'])!, playerId: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}player_id'])!, roleTag: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}role_tag']), );
 }
 @override
 $LineupSlotsTable createAlias(String alias) {
 return $LineupSlotsTable(attachedDatabase, alias);}}class LineupSlot extends DataClass implements Insertable<LineupSlot> 
 {
 final int id;
+final int teamId;
 final int lineIndex;
 final String slot;
 final int playerId;
-const LineupSlot({required this.id, required this.lineIndex, required this.slot, required this.playerId});@override
+final String? roleTag;
+const LineupSlot({required this.id, required this.teamId, required this.lineIndex, required this.slot, required this.playerId, this.roleTag});@override
 Map<String, Expression> toColumns(bool nullToAbsent) {
 final map = <String, Expression> {};map['id'] = Variable<int>(id);
+map['team_id'] = Variable<int>(teamId);
 map['line_index'] = Variable<int>(lineIndex);
 map['slot'] = Variable<String>(slot);
 map['player_id'] = Variable<int>(playerId);
-return map; 
+if (!nullToAbsent || roleTag != null){map['role_tag'] = Variable<String>(roleTag);
+}return map; 
 }
 LineupSlotsCompanion toCompanion(bool nullToAbsent) {
-return LineupSlotsCompanion(id: Value(id),lineIndex: Value(lineIndex),slot: Value(slot),playerId: Value(playerId),);
+return LineupSlotsCompanion(id: Value(id),teamId: Value(teamId),lineIndex: Value(lineIndex),slot: Value(slot),playerId: Value(playerId),roleTag: roleTag == null && nullToAbsent ? const Value.absent() : Value(roleTag),);
 }
 factory LineupSlot.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
 serializer ??= driftRuntimeOptions.defaultSerializer;
-return LineupSlot(id: serializer.fromJson<int>(json['id']),lineIndex: serializer.fromJson<int>(json['lineIndex']),slot: serializer.fromJson<String>(json['slot']),playerId: serializer.fromJson<int>(json['playerId']),);}
+return LineupSlot(id: serializer.fromJson<int>(json['id']),teamId: serializer.fromJson<int>(json['teamId']),lineIndex: serializer.fromJson<int>(json['lineIndex']),slot: serializer.fromJson<String>(json['slot']),playerId: serializer.fromJson<int>(json['playerId']),roleTag: serializer.fromJson<String?>(json['roleTag']),);}
 @override Map<String, dynamic> toJson({ValueSerializer? serializer}) {
 serializer ??= driftRuntimeOptions.defaultSerializer;
 return <String, dynamic>{
-'id': serializer.toJson<int>(id),'lineIndex': serializer.toJson<int>(lineIndex),'slot': serializer.toJson<String>(slot),'playerId': serializer.toJson<int>(playerId),};}LineupSlot copyWith({int? id,int? lineIndex,String? slot,int? playerId}) => LineupSlot(id: id ?? this.id,lineIndex: lineIndex ?? this.lineIndex,slot: slot ?? this.slot,playerId: playerId ?? this.playerId,);LineupSlot copyWithCompanion(LineupSlotsCompanion data) {
+'id': serializer.toJson<int>(id),'teamId': serializer.toJson<int>(teamId),'lineIndex': serializer.toJson<int>(lineIndex),'slot': serializer.toJson<String>(slot),'playerId': serializer.toJson<int>(playerId),'roleTag': serializer.toJson<String?>(roleTag),};}LineupSlot copyWith({int? id,int? teamId,int? lineIndex,String? slot,int? playerId,Value<String?> roleTag = const Value.absent()}) => LineupSlot(id: id ?? this.id,teamId: teamId ?? this.teamId,lineIndex: lineIndex ?? this.lineIndex,slot: slot ?? this.slot,playerId: playerId ?? this.playerId,roleTag: roleTag.present ? roleTag.value : this.roleTag,);LineupSlot copyWithCompanion(LineupSlotsCompanion data) {
 return LineupSlot(
-id: data.id.present ? data.id.value : this.id,lineIndex: data.lineIndex.present ? data.lineIndex.value : this.lineIndex,slot: data.slot.present ? data.slot.value : this.slot,playerId: data.playerId.present ? data.playerId.value : this.playerId,);
+id: data.id.present ? data.id.value : this.id,teamId: data.teamId.present ? data.teamId.value : this.teamId,lineIndex: data.lineIndex.present ? data.lineIndex.value : this.lineIndex,slot: data.slot.present ? data.slot.value : this.slot,playerId: data.playerId.present ? data.playerId.value : this.playerId,roleTag: data.roleTag.present ? data.roleTag.value : this.roleTag,);
 }
 @override
-String toString() {return (StringBuffer('LineupSlot(')..write('id: $id, ')..write('lineIndex: $lineIndex, ')..write('slot: $slot, ')..write('playerId: $playerId')..write(')')).toString();}
+String toString() {return (StringBuffer('LineupSlot(')..write('id: $id, ')..write('teamId: $teamId, ')..write('lineIndex: $lineIndex, ')..write('slot: $slot, ')..write('playerId: $playerId, ')..write('roleTag: $roleTag')..write(')')).toString();}
 @override
- int get hashCode => Object.hash(id, lineIndex, slot, playerId);@override
-bool operator ==(Object other) => identical(this, other) || (other is LineupSlot && other.id == this.id && other.lineIndex == this.lineIndex && other.slot == this.slot && other.playerId == this.playerId);
+ int get hashCode => Object.hash(id, teamId, lineIndex, slot, playerId, roleTag);@override
+bool operator ==(Object other) => identical(this, other) || (other is LineupSlot && other.id == this.id && other.teamId == this.teamId && other.lineIndex == this.lineIndex && other.slot == this.slot && other.playerId == this.playerId && other.roleTag == this.roleTag);
 }class LineupSlotsCompanion extends UpdateCompanion<LineupSlot> {
 final Value<int> id;
+final Value<int> teamId;
 final Value<int> lineIndex;
 final Value<String> slot;
 final Value<int> playerId;
-const LineupSlotsCompanion({this.id = const Value.absent(),this.lineIndex = const Value.absent(),this.slot = const Value.absent(),this.playerId = const Value.absent(),});
-LineupSlotsCompanion.insert({this.id = const Value.absent(),required int lineIndex,required String slot,required int playerId,}): lineIndex = Value(lineIndex), slot = Value(slot), playerId = Value(playerId);
+final Value<String?> roleTag;
+const LineupSlotsCompanion({this.id = const Value.absent(),this.teamId = const Value.absent(),this.lineIndex = const Value.absent(),this.slot = const Value.absent(),this.playerId = const Value.absent(),this.roleTag = const Value.absent(),});
+LineupSlotsCompanion.insert({this.id = const Value.absent(),this.teamId = const Value.absent(),required int lineIndex,required String slot,required int playerId,this.roleTag = const Value.absent(),}): lineIndex = Value(lineIndex), slot = Value(slot), playerId = Value(playerId);
 static Insertable<LineupSlot> custom({Expression<int>? id, 
+Expression<int>? teamId, 
 Expression<int>? lineIndex, 
 Expression<String>? slot, 
 Expression<int>? playerId, 
+Expression<String>? roleTag, 
 }) {
-return RawValuesInsertable({if (id != null)'id': id,if (lineIndex != null)'line_index': lineIndex,if (slot != null)'slot': slot,if (playerId != null)'player_id': playerId,});
-}LineupSlotsCompanion copyWith({Value<int>? id, Value<int>? lineIndex, Value<String>? slot, Value<int>? playerId}) {
-return LineupSlotsCompanion(id: id ?? this.id,lineIndex: lineIndex ?? this.lineIndex,slot: slot ?? this.slot,playerId: playerId ?? this.playerId,);
+return RawValuesInsertable({if (id != null)'id': id,if (teamId != null)'team_id': teamId,if (lineIndex != null)'line_index': lineIndex,if (slot != null)'slot': slot,if (playerId != null)'player_id': playerId,if (roleTag != null)'role_tag': roleTag,});
+}LineupSlotsCompanion copyWith({Value<int>? id, Value<int>? teamId, Value<int>? lineIndex, Value<String>? slot, Value<int>? playerId, Value<String?>? roleTag}) {
+return LineupSlotsCompanion(id: id ?? this.id,teamId: teamId ?? this.teamId,lineIndex: lineIndex ?? this.lineIndex,slot: slot ?? this.slot,playerId: playerId ?? this.playerId,roleTag: roleTag ?? this.roleTag,);
 }
 @override
 Map<String, Expression> toColumns(bool nullToAbsent) {
 final map = <String, Expression> {};if (id.present) {
 map['id'] = Variable<int>(id.value);}
+if (teamId.present) {
+map['team_id'] = Variable<int>(teamId.value);}
 if (lineIndex.present) {
 map['line_index'] = Variable<int>(lineIndex.value);}
 if (slot.present) {
 map['slot'] = Variable<String>(slot.value);}
 if (playerId.present) {
 map['player_id'] = Variable<int>(playerId.value);}
+if (roleTag.present) {
+map['role_tag'] = Variable<String>(roleTag.value);}
 return map; 
 }
 @override
-String toString() {return (StringBuffer('LineupSlotsCompanion(')..write('id: $id, ')..write('lineIndex: $lineIndex, ')..write('slot: $slot, ')..write('playerId: $playerId')..write(')')).toString();}
+String toString() {return (StringBuffer('LineupSlotsCompanion(')..write('id: $id, ')..write('teamId: $teamId, ')..write('lineIndex: $lineIndex, ')..write('slot: $slot, ')..write('playerId: $playerId, ')..write('roleTag: $roleTag')..write(')')).toString();}
 }
 abstract class _$AppDatabase extends GeneratedDatabase{
 _$AppDatabase(QueryExecutor e): super(e);
 $AppDatabaseManager get managers => $AppDatabaseManager(this);
 late final $PlayersTable players = $PlayersTable(this);
+late final $TeamsTable teams = $TeamsTable(this);
 late final $LineupSlotsTable lineupSlots = $LineupSlotsTable(this);
 @override
 Iterable<TableInfo<Table, Object?>> get allTables => allSchemaEntities.whereType<TableInfo<Table, Object?>>();
 @override
-List<DatabaseSchemaEntity> get allSchemaEntities => [players, lineupSlots];
+List<DatabaseSchemaEntity> get allSchemaEntities => [players, teams, lineupSlots];
 }
 typedef $$PlayersTableCreateCompanionBuilder = PlayersCompanion Function({Value<int> id,required String firstName,required String lastName,required String team,required String position,required int age,Value<int> gamesPlayed,Value<int> goals,Value<int> assists,Value<int> points,Value<int> plusMinus,Value<int> penaltyMinutes,required String league,Value<String?> imageUrl,Value<bool> isFavorite,});
 typedef $$PlayersTableUpdateCompanionBuilder = PlayersCompanion Function({Value<int> id,Value<String> firstName,Value<String> lastName,Value<String> team,Value<String> position,Value<int> age,Value<int> gamesPlayed,Value<int> goals,Value<int> assists,Value<int> points,Value<int> plusMinus,Value<int> penaltyMinutes,Value<String> league,Value<String?> imageUrl,Value<bool> isFavorite,});
@@ -739,15 +856,244 @@ GeneratedColumn<bool> get isFavorite => $composableBuilder(
     (Player,$$PlayersTableReferences),
     Player,
     PrefetchHooks Function({bool lineupSlotsRefs})
-    >;typedef $$LineupSlotsTableCreateCompanionBuilder = LineupSlotsCompanion Function({Value<int> id,required int lineIndex,required String slot,required int playerId,});
-typedef $$LineupSlotsTableUpdateCompanionBuilder = LineupSlotsCompanion Function({Value<int> id,Value<int> lineIndex,Value<String> slot,Value<int> playerId,});
+    >;typedef $$TeamsTableCreateCompanionBuilder = TeamsCompanion Function({Value<int> id,required String name,Value<DateTime> createdAt,});
+typedef $$TeamsTableUpdateCompanionBuilder = TeamsCompanion Function({Value<int> id,Value<String> name,Value<DateTime> createdAt,});
+      final class $$TeamsTableReferences extends BaseReferences<
+        _$AppDatabase,
+        $TeamsTable,
+        Team> {
+        $$TeamsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+        
+                  
+                  static MultiTypedResultKey<
+          $LineupSlotsTable,
+          List<LineupSlot>
+        > _lineupSlotsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(
+          db.lineupSlots, 
+          aliasName: $_aliasNameGenerator(
+            db.teams.id,
+            db.lineupSlots.teamId)
+        );
+
+          $$LineupSlotsTableProcessedTableManager get lineupSlotsRefs {
+        final manager = $$LineupSlotsTableTableManager(
+            $_db, $_db.lineupSlots
+            ).filter(
+              (f) => f.teamId.id(
+              $_item.id
+            )
+          );
+
+          final cache = $_typedResult.readTableOrNull(_lineupSlotsRefsTable($_db));
+          return ProcessedTableManager(manager.$state.copyWith(prefetchedData: cache));
+
+
+        }
+        
+
+      }class $$TeamsTableFilterComposer extends Composer<
+        _$AppDatabase,
+        $TeamsTable> {
+        $$TeamsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+          ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id,
+      builder: (column) => 
+      ColumnFilters(column));
+      
+ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name,
+      builder: (column) => 
+      ColumnFilters(column));
+      
+ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt,
+      builder: (column) => 
+      ColumnFilters(column));
+      
+        Expression<bool> lineupSlotsRefs(
+          Expression<bool> Function( $$LineupSlotsTableFilterComposer f) f
+        ) {
+                final $$LineupSlotsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.lineupSlots,
+      getReferencedColumn: (t) => t.teamId,
+      builder: (joinBuilder,{$addJoinBuilderToRootComposer,$removeJoinBuilderFromRootComposer }) => 
+      $$LineupSlotsTableFilterComposer(
+              $db: $db,
+              $table: $db.lineupSlots,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+        ));
+          return f(composer);
+        }
+
+        }
+      class $$TeamsTableOrderingComposer extends Composer<
+        _$AppDatabase,
+        $TeamsTable> {
+        $$TeamsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+          ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id,
+      builder: (column) => 
+      ColumnOrderings(column));
+      
+ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name,
+      builder: (column) => 
+      ColumnOrderings(column));
+      
+ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt,
+      builder: (column) => 
+      ColumnOrderings(column));
+      
+        }
+      class $$TeamsTableAnnotationComposer extends Composer<
+        _$AppDatabase,
+        $TeamsTable> {
+        $$TeamsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+          GeneratedColumn<int> get id => $composableBuilder(
+      column: $table.id,
+      builder: (column) => column);
+      
+GeneratedColumn<String> get name => $composableBuilder(
+      column: $table.name,
+      builder: (column) => column);
+      
+GeneratedColumn<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt,
+      builder: (column) => column);
+      
+        Expression<T> lineupSlotsRefs<T extends Object>(
+          Expression<T> Function( $$LineupSlotsTableAnnotationComposer a) f
+        ) {
+                final $$LineupSlotsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.lineupSlots,
+      getReferencedColumn: (t) => t.teamId,
+      builder: (joinBuilder,{$addJoinBuilderToRootComposer,$removeJoinBuilderFromRootComposer }) => 
+      $$LineupSlotsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.lineupSlots,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+        ));
+          return f(composer);
+        }
+
+        }
+      class $$TeamsTableTableManager extends RootTableManager    <_$AppDatabase,
+    $TeamsTable,
+    Team,
+    $$TeamsTableFilterComposer,
+    $$TeamsTableOrderingComposer,
+    $$TeamsTableAnnotationComposer,
+    $$TeamsTableCreateCompanionBuilder,
+    $$TeamsTableUpdateCompanionBuilder,
+    (Team,$$TeamsTableReferences),
+    Team,
+    PrefetchHooks Function({bool lineupSlotsRefs})
+    > {
+    $$TeamsTableTableManager(_$AppDatabase db, $TeamsTable table) : super(
+      TableManagerState(
+        db: db,
+        table: table,
+        createFilteringComposer: () => $$TeamsTableFilterComposer($db: db,$table:table),
+        createOrderingComposer: () => $$TeamsTableOrderingComposer($db: db,$table:table),
+        createComputedFieldComposer: () => $$TeamsTableAnnotationComposer($db: db,$table:table),
+        updateCompanionCallback: ({Value<int> id = const Value.absent(),Value<String> name = const Value.absent(),Value<DateTime> createdAt = const Value.absent(),})=> TeamsCompanion(id: id,name: name,createdAt: createdAt,),
+        createCompanionCallback: ({Value<int> id = const Value.absent(),required String name,Value<DateTime> createdAt = const Value.absent(),})=> TeamsCompanion.insert(id: id,name: name,createdAt: createdAt,),
+        withReferenceMapper: (p0) => p0
+              .map(
+                  (e) =>
+                     (e.readTable(table), $$TeamsTableReferences(db, table, e))
+                  )
+              .toList(),
+        prefetchHooksCallback:         ({lineupSlotsRefs = false}){
+          return PrefetchHooks(
+            db: db,
+            explicitlyWatchedTables: [
+             if (lineupSlotsRefs) db.lineupSlots
+            ],
+            addJoins: null,
+            getPrefetchedDataCallback: (items) async {
+            return [
+                      if (lineupSlotsRefs) await $_getPrefetchedData(
+                  currentTable: table,
+                  referencedTable:
+                      $$TeamsTableReferences._lineupSlotsRefsTable(db),
+                  managerFromTypedResult: (p0) =>
+                      $$TeamsTableReferences(db, table, p0).lineupSlotsRefs,
+                  referencedItemsForCurrentItem: (item, referencedItems) =>
+                      referencedItems.where((e) => e.teamId == item.id),
+                  typedResults: items)
+            
+                ];
+              },
+          );
+        }
+,
+        ));
+        }
+    typedef $$TeamsTableProcessedTableManager = ProcessedTableManager    <_$AppDatabase,
+    $TeamsTable,
+    Team,
+    $$TeamsTableFilterComposer,
+    $$TeamsTableOrderingComposer,
+    $$TeamsTableAnnotationComposer,
+    $$TeamsTableCreateCompanionBuilder,
+    $$TeamsTableUpdateCompanionBuilder,
+    (Team,$$TeamsTableReferences),
+    Team,
+    PrefetchHooks Function({bool lineupSlotsRefs})
+    >;typedef $$LineupSlotsTableCreateCompanionBuilder = LineupSlotsCompanion Function({Value<int> id,Value<int> teamId,required int lineIndex,required String slot,required int playerId,Value<String?> roleTag,});
+typedef $$LineupSlotsTableUpdateCompanionBuilder = LineupSlotsCompanion Function({Value<int> id,Value<int> teamId,Value<int> lineIndex,Value<String> slot,Value<int> playerId,Value<String?> roleTag,});
       final class $$LineupSlotsTableReferences extends BaseReferences<
         _$AppDatabase,
         $LineupSlotsTable,
         LineupSlot> {
         $$LineupSlotsTableReferences(super.$_db, super.$_table, super.$_typedResult);
         
-                          static $PlayersTable _playerIdTable(_$AppDatabase db) => 
+                          static $TeamsTable _teamIdTable(_$AppDatabase db) => 
+            db.teams.createAlias($_aliasNameGenerator(
+            db.lineupSlots.teamId,
+            db.teams.id));
+          
+
+        $$TeamsTableProcessedTableManager? get teamId {
+          if ($_item.teamId == null) return null;
+          final manager = $$TeamsTableTableManager($_db, $_db.teams).filter((f) => f.id($_item.teamId!));
+          final item = $_typedResult.readTableOrNull(_teamIdTable($_db));
+          if (item == null) return manager;
+          return ProcessedTableManager(manager.$state.copyWith(prefetchedData: [item]));
+        }
+
+                  static $PlayersTable _playerIdTable(_$AppDatabase db) => 
             db.players.createAlias($_aliasNameGenerator(
             db.lineupSlots.playerId,
             db.players.id));
@@ -787,6 +1133,28 @@ ColumnFilters<String> get slot => $composableBuilder(
       builder: (column) => 
       ColumnFilters(column));
       
+ColumnFilters<String> get roleTag => $composableBuilder(
+      column: $table.roleTag,
+      builder: (column) => 
+      ColumnFilters(column));
+      
+        $$TeamsTableFilterComposer get teamId {
+                final $$TeamsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.teamId,
+      referencedTable: $db.teams,
+      getReferencedColumn: (t) => t.id,
+      builder: (joinBuilder,{$addJoinBuilderToRootComposer,$removeJoinBuilderFromRootComposer }) => 
+      $$TeamsTableFilterComposer(
+              $db: $db,
+              $table: $db.teams,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+        ));
+          return composer;
+        }
         $$PlayersTableFilterComposer get playerId {
                 final $$PlayersTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -830,6 +1198,28 @@ ColumnOrderings<String> get slot => $composableBuilder(
       builder: (column) => 
       ColumnOrderings(column));
       
+ColumnOrderings<String> get roleTag => $composableBuilder(
+      column: $table.roleTag,
+      builder: (column) => 
+      ColumnOrderings(column));
+      
+        $$TeamsTableOrderingComposer get teamId {
+                final $$TeamsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.teamId,
+      referencedTable: $db.teams,
+      getReferencedColumn: (t) => t.id,
+      builder: (joinBuilder,{$addJoinBuilderToRootComposer,$removeJoinBuilderFromRootComposer }) => 
+      $$TeamsTableOrderingComposer(
+              $db: $db,
+              $table: $db.teams,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+        ));
+          return composer;
+        }
         $$PlayersTableOrderingComposer get playerId {
                 final $$PlayersTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -870,6 +1260,27 @@ GeneratedColumn<String> get slot => $composableBuilder(
       column: $table.slot,
       builder: (column) => column);
       
+GeneratedColumn<String> get roleTag => $composableBuilder(
+      column: $table.roleTag,
+      builder: (column) => column);
+      
+        $$TeamsTableAnnotationComposer get teamId {
+                final $$TeamsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.teamId,
+      referencedTable: $db.teams,
+      getReferencedColumn: (t) => t.id,
+      builder: (joinBuilder,{$addJoinBuilderToRootComposer,$removeJoinBuilderFromRootComposer }) => 
+      $$TeamsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.teams,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+        ));
+          return composer;
+        }
         $$PlayersTableAnnotationComposer get playerId {
                 final $$PlayersTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -898,7 +1309,7 @@ GeneratedColumn<String> get slot => $composableBuilder(
     $$LineupSlotsTableUpdateCompanionBuilder,
     (LineupSlot,$$LineupSlotsTableReferences),
     LineupSlot,
-    PrefetchHooks Function({bool playerId})
+    PrefetchHooks Function({bool teamId,bool playerId})
     > {
     $$LineupSlotsTableTableManager(_$AppDatabase db, $LineupSlotsTable table) : super(
       TableManagerState(
@@ -907,15 +1318,15 @@ GeneratedColumn<String> get slot => $composableBuilder(
         createFilteringComposer: () => $$LineupSlotsTableFilterComposer($db: db,$table:table),
         createOrderingComposer: () => $$LineupSlotsTableOrderingComposer($db: db,$table:table),
         createComputedFieldComposer: () => $$LineupSlotsTableAnnotationComposer($db: db,$table:table),
-        updateCompanionCallback: ({Value<int> id = const Value.absent(),Value<int> lineIndex = const Value.absent(),Value<String> slot = const Value.absent(),Value<int> playerId = const Value.absent(),})=> LineupSlotsCompanion(id: id,lineIndex: lineIndex,slot: slot,playerId: playerId,),
-        createCompanionCallback: ({Value<int> id = const Value.absent(),required int lineIndex,required String slot,required int playerId,})=> LineupSlotsCompanion.insert(id: id,lineIndex: lineIndex,slot: slot,playerId: playerId,),
+        updateCompanionCallback: ({Value<int> id = const Value.absent(),Value<int> teamId = const Value.absent(),Value<int> lineIndex = const Value.absent(),Value<String> slot = const Value.absent(),Value<int> playerId = const Value.absent(),Value<String?> roleTag = const Value.absent(),})=> LineupSlotsCompanion(id: id,teamId: teamId,lineIndex: lineIndex,slot: slot,playerId: playerId,roleTag: roleTag,),
+        createCompanionCallback: ({Value<int> id = const Value.absent(),Value<int> teamId = const Value.absent(),required int lineIndex,required String slot,required int playerId,Value<String?> roleTag = const Value.absent(),})=> LineupSlotsCompanion.insert(id: id,teamId: teamId,lineIndex: lineIndex,slot: slot,playerId: playerId,roleTag: roleTag,),
         withReferenceMapper: (p0) => p0
               .map(
                   (e) =>
                      (e.readTable(table), $$LineupSlotsTableReferences(db, table, e))
                   )
               .toList(),
-        prefetchHooksCallback:         ({playerId = false}){
+        prefetchHooksCallback:         ({teamId = false,playerId = false}){
           return PrefetchHooks(
             db: db,
             explicitlyWatchedTables: [
@@ -923,7 +1334,17 @@ GeneratedColumn<String> get slot => $composableBuilder(
             ],
             addJoins: <T extends TableManagerState<dynamic,dynamic,dynamic,dynamic,dynamic,dynamic,dynamic,dynamic,dynamic,dynamic,dynamic>>(state) {
 
-                                  if (playerId){
+                                  if (teamId){
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.teamId,
+                    referencedTable:
+                        $$LineupSlotsTableReferences._teamIdTable(db),
+                    referencedColumn:
+                        $$LineupSlotsTableReferences._teamIdTable(db).id,
+                  ) as T;
+               }
+                  if (playerId){
                   state = state.withJoin(
                     currentTable: table,
                     currentColumn: table.playerId,
@@ -957,10 +1378,11 @@ GeneratedColumn<String> get slot => $composableBuilder(
     $$LineupSlotsTableUpdateCompanionBuilder,
     (LineupSlot,$$LineupSlotsTableReferences),
     LineupSlot,
-    PrefetchHooks Function({bool playerId})
+    PrefetchHooks Function({bool teamId,bool playerId})
     >;class $AppDatabaseManager {
 final _$AppDatabase _db;
 $AppDatabaseManager(this._db);
 $$PlayersTableTableManager get players => $$PlayersTableTableManager(_db, _db.players);
+$$TeamsTableTableManager get teams => $$TeamsTableTableManager(_db, _db.teams);
 $$LineupSlotsTableTableManager get lineupSlots => $$LineupSlotsTableTableManager(_db, _db.lineupSlots);
 }

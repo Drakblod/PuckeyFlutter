@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:puckey/core/database/app_database.dart';
 import 'package:puckey/core/theme/design_system.dart';
+import 'package:puckey/core/services/storage_service.dart';
 import 'package:puckey/features/team_builder/providers/lineup_provider.dart';
 import 'package:puckey/features/scouting/scouting_screen.dart';
 
@@ -12,11 +13,69 @@ class TeamBuilderScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final lineupAsync = ref.watch(lineupProvider);
+    final teamsAsync = ref.watch(teamsProvider);
+    final selectedTeamId = ref.watch(selectedTeamIdProvider);
     final tabController = useTabController(initialLength: 5);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('TEAM BUILDER'),
+        title: Row(
+          children: [
+            const Text('TEAM BUILDER'),
+            const SizedBox(width: 12),
+            teamsAsync.when(
+              data: (teams) {
+                final currentTeam = teams.firstWhere((t) => t.id == selectedTeamId, orElse: () => teams.first);
+                return PopupMenuButton<int>(
+                  initialValue: selectedTeamId,
+                  onSelected: (id) {
+                    if (id == -1) {
+                      _showCreateTeamDialog(context, ref);
+                    } else {
+                      ref.read(selectedTeamIdProvider.notifier).state = id;
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: PuckeyColors.surfaceLight,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          currentTeam.name.toUpperCase(),
+                          style: const TextStyle(color: PuckeyColors.mint, fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                        const Icon(Icons.arrow_drop_down, color: PuckeyColors.mint, size: 20),
+                      ],
+                    ),
+                  ),
+                  itemBuilder: (context) => [
+                    ...teams.map((t) => PopupMenuItem(
+                      value: t.id,
+                      child: Text(t.name, style: const TextStyle(color: PuckeyColors.iceBlue)),
+                    )),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
+                      value: -1,
+                      child: Row(
+                        children: [
+                          Icon(Icons.add, color: PuckeyColors.mint, size: 18),
+                          SizedBox(width: 8),
+                          Text('NEW TEAM', style: TextStyle(color: PuckeyColors.mint)),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+              loading: () => const SizedBox(),
+              error: (_, __) => const SizedBox(),
+            ),
+          ],
+        ),
         bottom: TabBar(
           controller: tabController,
           isScrollable: true,
@@ -47,6 +106,45 @@ class TeamBuilderScreen extends HookConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator(color: PuckeyColors.teal)),
         error: (err, st) => Center(child: Text('Error loading lineup: $err')),
+      ),
+    );
+  }
+
+  void _showCreateTeamDialog(BuildContext context, WidgetRef ref) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: PuckeyColors.surface,
+        title: const Text('CREATE NEW TEAM', style: TextStyle(color: PuckeyColors.mint)),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          style: const TextStyle(color: PuckeyColors.iceBlue),
+          decoration: const InputDecoration(
+            hintText: 'Team Name (e.g. Leksands IF 26/27)',
+            hintStyle: TextStyle(color: PuckeyColors.slate),
+            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: PuckeyColors.teal)),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('CANCEL', style: TextStyle(color: PuckeyColors.slate)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: PuckeyColors.mint),
+            onPressed: () async {
+              if (controller.text.isNotEmpty) {
+                final id = await ref.read(storageServiceProvider).createTeam(controller.text);
+                ref.invalidate(teamsProvider);
+                ref.read(selectedTeamIdProvider.notifier).state = id;
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('CREATE', style: TextStyle(color: PuckeyColors.background)),
+          ),
+        ],
       ),
     );
   }
@@ -81,17 +179,17 @@ class _LineView extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _LineupSlot(lineIndex: lineIndex, slotLabel: 'LW', player: lineup.getPlayer(lineIndex, 'LW')),
-                  _LineupSlot(lineIndex: lineIndex, slotLabel: 'C', player: lineup.getPlayer(lineIndex, 'C')),
-                  _LineupSlot(lineIndex: lineIndex, slotLabel: 'RW', player: lineup.getPlayer(lineIndex, 'RW')),
+                  _LineupSlot(lineIndex: lineIndex, slotLabel: 'LW', player: lineup.getPlayer(lineIndex, 'LW'), tag: lineup.getTag(lineIndex, 'LW')),
+                  _LineupSlot(lineIndex: lineIndex, slotLabel: 'C', player: lineup.getPlayer(lineIndex, 'C'), tag: lineup.getTag(lineIndex, 'C')),
+                  _LineupSlot(lineIndex: lineIndex, slotLabel: 'RW', player: lineup.getPlayer(lineIndex, 'RW'), tag: lineup.getTag(lineIndex, 'RW')),
                 ],
               ),
               const Spacer(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _LineupSlot(lineIndex: lineIndex, slotLabel: 'LD', player: lineup.getPlayer(lineIndex, 'LD')),
-                  _LineupSlot(lineIndex: lineIndex, slotLabel: 'RD', player: lineup.getPlayer(lineIndex, 'RD')),
+                  _LineupSlot(lineIndex: lineIndex, slotLabel: 'LD', player: lineup.getPlayer(lineIndex, 'LD'), tag: lineup.getTag(lineIndex, 'LD')),
+                  _LineupSlot(lineIndex: lineIndex, slotLabel: 'RD', player: lineup.getPlayer(lineIndex, 'RD'), tag: lineup.getTag(lineIndex, 'RD')),
                 ],
               ),
               const SizedBox(height: 60),
@@ -131,8 +229,8 @@ class _GoalieView extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _LineupSlot(lineIndex: 4, slotLabel: 'G1', player: lineup.getPlayer(4, 'G1')),
-                  _LineupSlot(lineIndex: 4, slotLabel: 'G2', player: lineup.getPlayer(4, 'G2')),
+                  _LineupSlot(lineIndex: 4, slotLabel: 'G1', player: lineup.getPlayer(4, 'G1'), tag: lineup.getTag(4, 'G1')),
+                  _LineupSlot(lineIndex: 4, slotLabel: 'G2', player: lineup.getPlayer(4, 'G2'), tag: lineup.getTag(4, 'G2')),
                 ],
               ),
               const SizedBox(height: 60),
@@ -148,41 +246,65 @@ class _LineupSlot extends ConsumerWidget {
   final int lineIndex;
   final String slotLabel;
   final Player? player;
+  final String? tag;
 
-  const _LineupSlot({required this.lineIndex, required this.slotLabel, this.player});
+  const _LineupSlot({required this.lineIndex, required this.slotLabel, this.player, this.tag});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
+      onLongPress: player != null ? () => _showTagPicker(context, ref) : null,
       onTap: () => _showSelectionSheet(context, ref),
       child: Column(
         children: [
-          Container(
-            width: 75,
-            height: 75,
-            decoration: BoxDecoration(
-              color: PuckeyColors.background.withOpacity(0.8),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: player != null ? PuckeyColors.mint : PuckeyColors.teal,
-                width: 2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: (player != null ? PuckeyColors.mint : PuckeyColors.teal).withOpacity(0.2),
-                  blurRadius: 10,
-                  spreadRadius: 2,
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 75,
+                height: 75,
+                decoration: BoxDecoration(
+                  color: PuckeyColors.background.withOpacity(0.8),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: player != null ? PuckeyColors.mint : PuckeyColors.teal,
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (player != null ? PuckeyColors.mint : PuckeyColors.teal).withOpacity(0.2),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Center(
-              child: player != null
-                  ? Text(
-                      player!.lastName.substring(0, 1),
-                      style: const TextStyle(color: PuckeyColors.mint, fontSize: 30, fontWeight: FontWeight.bold),
-                    )
-                  : const Icon(Icons.add, color: PuckeyColors.teal, size: 30),
-            ),
+                child: Center(
+                  child: player != null
+                      ? Text(
+                          player!.lastName.substring(0, 1),
+                          style: const TextStyle(color: PuckeyColors.mint, fontSize: 30, fontWeight: FontWeight.bold),
+                        )
+                      : const Icon(Icons.add, color: PuckeyColors.teal, size: 30),
+                ),
+              ),
+              if (tag != null)
+                Positioned(
+                  top: -5,
+                  right: -5,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: PuckeyColors.iceBlue,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: PuckeyColors.background, width: 1),
+                    ),
+                    child: Text(
+                      tag!.toUpperCase(),
+                      style: const TextStyle(color: PuckeyColors.background, fontSize: 8, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 8),
           Container(
@@ -199,6 +321,39 @@ class _LineupSlot extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showTagPicker(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: PuckeyColors.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('ASSIGN ROLE', style: TextStyle(color: PuckeyColors.mint, fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                'Sniper', 'Playmaker', 'Speedster', 'Power Forward', 'Two-Way', 'Grinder', 'Enforcer', 'Offensive D', 'Shut Down D'
+              ].map((t) => ActionChip(
+                backgroundColor: tag == t ? PuckeyColors.mint : PuckeyColors.surfaceLight,
+                label: Text(t, style: TextStyle(color: tag == t ? PuckeyColors.background : PuckeyColors.iceBlue)),
+                onPressed: () {
+                  ref.read(lineupProvider.notifier).updateTag(lineIndex, slotLabel, t == tag ? null : t);
+                  Navigator.pop(context);
+                },
+              )).toList(),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
@@ -290,6 +445,7 @@ class _PlayerSelector extends HookConsumerWidget {
                 items: const [
                   DropdownMenuItem(value: 'All', child: Text('All Leagues')),
                   DropdownMenuItem(value: 'SHL', child: Text('SHL')),
+                  DropdownMenuItem(value: 'HockeyAllsvenskan', child: Text('HA')),
                   DropdownMenuItem(value: 'ECHL', child: Text('ECHL')),
                 ],
                 onChanged: (val) {

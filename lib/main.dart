@@ -12,11 +12,10 @@ Future<void> main() async {
   final storageService = StorageService(db);
   
   try {
-    // Only try to seed if we can open the database
-    // On web, this might fail if WASM files are missing
-    await storageService.seedMockData().timeout(const Duration(seconds: 2));
+    // Pre-load players from JSON and seed DB
+    await storageService.initialize().timeout(const Duration(seconds: 5));
   } catch (e) {
-    debugPrint('Database initialization warning: $e');
+    debugPrint('Storage initialization warning: $e');
   }
 
   runApp(
