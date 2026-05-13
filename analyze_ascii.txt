@@ -1,0 +1,34 @@
+Analyzing puckey...
+
+  error - lib\features\scouting\player_detail_screen.dart:128:15 - The named parameter 'titlePositionMultiplierPercentage' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'titlePositionMultiplierPercentage'. - undefined_named_parameter
+  error - lib\features\team_builder\team_builder_screen.dart:231:36 - Undefined name 'playersProvider'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+warning - lib\core\database\app_database.g.dart:757:31 - The operand can't be 'null', so the condition is always 'false'. Try removing the condition, an enclosing condition, or the whole conditional statement. - unnecessary_null_comparison
+warning - lib\core\database\app_database.g.dart:757:40 - Dead code. Try removing the code, or fixing the code before it so that it can be reached. - dead_code
+warning - lib\core\database\app_database.g.dart:758:108 - The '!' will have no effect because the receiver can't be null. Try removing the '!' operator. - unnecessary_non_null_assertion
+   info - lib\features\scouting\player_detail_screen.dart:113:36 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\features\scouting\player_detail_screen.dart:155:13 - 'swapAnimationDuration' is deprecated and shouldn't be used. Please use [duration] instead. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\features\scouting\player_detail_screen.dart:182:44 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\features\scouting\player_detail_screen.dart:198:47 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\features\scouting\player_detail_screen.dart:379:35 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\features\scouting\scouting_screen.dart:54:9 - Statements in an if should be enclosed in a block. Try wrapping the statement in a block. - curly_braces_in_flow_control_structures
+   info - lib\features\scouting\scouting_screen.dart:323:42 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\features\scouting\scouting_screen.dart:389:33 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\features\scouting\scouting_screen.dart:391:52 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\features\team_builder\team_builder_screen.dart:164:46 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\features\team_builder\team_builder_screen.dart:172:83 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\features\team_builder\team_builder_screen.dart:361:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - tool\fetch_shl.dart:13:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - tool\fetch_shl.dart:18:5 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - tool\fetch_shl.dart:23:5 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - tool\fetch_shl.dart:26:5 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - tool\format_echl.dart:134:21 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - tool\format_echl.dart:134:37 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - tool\format_echl.dart:134:52 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - tool\format_echl.dart:134:63 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - tool\format_echl.dart:134:76 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - tool\format_echl.dart:134:83 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - tool\format_echl.dart:134:89 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - tool\format_echl.dart:134:95 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - tool\format_echl.dart:134:102 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+
+30 issues found.

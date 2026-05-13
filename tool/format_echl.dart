@@ -1,0 +1,138 @@
+import 'dart:convert';
+import 'dart:io';
+
+void main() {
+  const jsonStr = '''[
+  {"name": "Brandon Hawkins", "team": "TOL", "pos": "F", "gp": 69, "g": 35, "a": 43, "tp": 78, "plusMinus": 6},
+  {"name": "Brayden Watts", "team": "ALN", "pos": "F", "gp": 71, "g": 24, "a": 51, "tp": 75, "plusMinus": 12},
+  {"name": "Simon Pinard", "team": "SC", "pos": "F", "gp": 70, "g": 30, "a": 43, "tp": 73, "plusMinus": 9},
+  {"name": "Danny Dzhaniyev", "team": "UTA", "pos": "F", "gp": 72, "g": 24, "a": 49, "tp": 73, "plusMinus": -10},
+  {"name": "Danny Katic", "team": "ALN", "pos": "F", "gp": 62, "g": 38, "a": 32, "tp": 70, "plusMinus": 21},
+  {"name": "Kirill Tyutyayev", "team": "FW", "pos": "F", "gp": 70, "g": 22, "a": 46, "tp": 68, "plusMinus": 21},
+  {"name": "Brannon McManus", "team": "ADK", "pos": "F", "gp": 72, "g": 31, "a": 36, "tp": 67, "plusMinus": 12},
+  {"name": "Austin Magera", "team": "FW", "pos": "F", "gp": 71, "g": 32, "a": 33, "tp": 65, "plusMinus": 20},
+  {"name": "Devon Paliani", "team": "TAH", "pos": "F", "gp": 72, "g": 32, "a": 33, "tp": 65, "plusMinus": -10},
+  {"name": "Peter Bates", "team": "WIC", "pos": "F", "gp": 72, "g": 23, "a": 42, "tp": 65, "plusMinus": -11},
+  {"name": "Ryan Wagner", "team": "RC", "pos": "F", "gp": 70, "g": 24, "a": 40, "tp": 64, "plusMinus": -24},
+  {"name": "Tanner Dickinson", "team": "TOL", "pos": "F", "gp": 72, "g": 23, "a": 41, "tp": 64, "plusMinus": 24},
+  {"name": "Brady Fleurent", "team": "NOR", "pos": "F", "gp": 70, "g": 31, "a": 32, "tp": 63, "plusMinus": -10},
+  {"name": "Reed Lebster", "team": "UTA", "pos": "F", "gp": 72, "g": 31, "a": 31, "tp": 62, "plusMinus": -6},
+  {"name": "Anthony Romano", "team": "FLA", "pos": "F", "gp": 64, "g": 26, "a": 36, "tp": 62, "plusMinus": 27},
+  {"name": "Brooklyn Kalmikov", "team": "MNE", "pos": "F", "gp": 64, "g": 21, "a": 41, "tp": 62, "plusMinus": 7},
+  {"name": "Max Andreev", "team": "MNE", "pos": "F", "gp": 70, "g": 19, "a": 43, "tp": 62, "plusMinus": 12},
+  {"name": "Blake Bennett", "team": "WHL", "pos": "F", "gp": 68, "g": 27, "a": 34, "tp": 61, "plusMinus": -13},
+  {"name": "Colton Hargrove", "team": "ALN", "pos": "F", "gp": 69, "g": 26, "a": 35, "tp": 61, "plusMinus": 22},
+  {"name": "Jackson Jutting", "team": "KC", "pos": "F", "gp": 66, "g": 30, "a": 29, "tp": 59, "plusMinus": 11},
+  {"name": "Alex Young", "team": "ATL", "pos": "F", "gp": 72, "g": 27, "a": 32, "tp": 59, "plusMinus": 5},
+  {"name": "Ryan Kirwan", "team": "CIN", "pos": "F", "gp": 60, "g": 26, "a": 33, "tp": 59, "plusMinus": 9},
+  {"name": "Jay Dickman", "team": "WIC", "pos": "F", "gp": 72, "g": 24, "a": 35, "tp": 59, "plusMinus": -14},
+  {"name": "Harrison Blaisdell", "team": "ALN", "pos": "F", "gp": 72, "g": 32, "a": 26, "tp": 58, "plusMinus": 14},
+  {"name": "Kevin Wall", "team": "TAH", "pos": "F", "gp": 53, "g": 21, "a": 37, "tp": 58, "plusMinus": 10},
+  {"name": "Zach Okabe", "team": "KAL", "pos": "F", "gp": 65, "g": 19, "a": 37, "tp": 56, "plusMinus": 8},
+  {"name": "Robert Cronin", "team": "MNE", "pos": "F", "gp": 72, "g": 19, "a": 37, "tp": 56, "plusMinus": 13},
+  {"name": "Connor Lockhart", "team": "WHL", "pos": "F", "gp": 70, "g": 21, "a": 34, "tp": 55, "plusMinus": 14},
+  {"name": "Michael Gildon", "team": "ALN", "pos": "F", "gp": 72, "g": 21, "a": 34, "tp": 55, "plusMinus": 21},
+  {"name": "Casey Bailey", "team": "TAH", "pos": "F", "gp": 54, "g": 25, "a": 29, "tp": 54, "plusMinus": 2},
+  {"name": "Anthony Repaci", "team": "WOR", "pos": "F", "gp": 72, "g": 23, "a": 31, "tp": 54, "plusMinus": -12},
+  {"name": "Ryan Chyzowski", "team": "RC", "pos": "F", "gp": 65, "g": 30, "a": 23, "tp": 53, "plusMinus": -1},
+  {"name": "Aaron Luchuk", "team": "ORL", "pos": "F", "gp": 72, "g": 22, "a": 31, "tp": 53, "plusMinus": -24},
+  {"name": "Quinn Preston", "team": "KAL", "pos": "F", "gp": 69, "g": 21, "a": 32, "tp": 53, "plusMinus": -2},
+  {"name": "Anthony Beauregard", "team": "TR", "pos": "F", "gp": 62, "g": 16, "a": 37, "tp": 53, "plusMinus": -8},
+  {"name": "Sloan Stanick", "team": "TAH", "pos": "F", "gp": 47, "g": 23, "a": 29, "tp": 52, "plusMinus": 13},
+  {"name": "Nolan Walker", "team": "KAL", "pos": "F", "gp": 69, "g": 20, "a": 32, "tp": 52, "plusMinus": -1},
+  {"name": "Oliver Chau", "team": "FLA", "pos": "F", "gp": 72, "g": 17, "a": 35, "tp": 52, "plusMinus": 26},
+  {"name": "Brendan Hoffmann", "team": "IDH", "pos": "F", "gp": 44, "g": 32, "a": 19, "tp": 51, "plusMinus": 10},
+  {"name": "Jack O'Brien", "team": "ATL", "pos": "F", "gp": 62, "g": 28, "a": 23, "tp": 51, "plusMinus": 4},
+  {"name": "Nicholas Zabaneh", "team": "SAV", "pos": "F", "gp": 69, "g": 27, "a": 24, "tp": 51, "plusMinus": -9},
+  {"name": "Casey Carreau", "team": "KC", "pos": "F", "gp": 72, "g": 23, "a": 28, "tp": 51, "plusMinus": 31},
+  {"name": "Reece Newkirk", "team": "ORL", "pos": "F", "gp": 52, "g": 19, "a": 32, "tp": 51, "plusMinus": -10},
+  {"name": "Keaton Mastrodonato", "team": "GVL", "pos": "F", "gp": 63, "g": 26, "a": 24, "tp": 50, "plusMinus": -9},
+  {"name": "Tanner Kelly", "team": "TOL", "pos": "F", "gp": 66, "g": 25, "a": 25, "tp": 50, "plusMinus": 13},
+  {"name": "Trent Swick", "team": "TAH", "pos": "F", "gp": 67, "g": 25, "a": 25, "tp": 50, "plusMinus": 5},
+  {"name": "Blake Murray", "team": "FW", "pos": "F", "gp": 69, "g": 22, "a": 28, "tp": 50, "plusMinus": 15},
+  {"name": "Quinn Olson", "team": "RC", "pos": "F", "gp": 61, "g": 17, "a": 33, "tp": 50, "plusMinus": -2},
+  {"name": "Hank Crone", "team": "ALN", "pos": "F", "gp": 63, "g": 13, "a": 37, "tp": 50, "plusMinus": -12},
+  {"name": "Jacob Hudson", "team": "MNE", "pos": "F", "gp": 63, "g": 23, "a": 26, "tp": 49, "plusMinus": 6},
+  {"name": "Jack Randl", "team": "KC", "pos": "F", "gp": 72, "g": 23, "a": 26, "tp": 49, "plusMinus": 13},
+  {"name": "Deni Goure", "team": "BLM", "pos": "F", "gp": 66, "g": 20, "a": 29, "tp": 49, "plusMinus": 1},
+  {"name": "Logan Pietila", "team": "WHL", "pos": "F", "gp": 68, "g": 18, "a": 31, "tp": 49, "plusMinus": 17},
+  {"name": "Colby McAuley", "team": "ALN", "pos": "F", "gp": 62, "g": 25, "a": 23, "tp": 48, "plusMinus": 8},
+  {"name": "Brett Davis", "team": "RC", "pos": "F", "gp": 68, "g": 20, "a": 28, "tp": 48, "plusMinus": -17},
+  {"name": "Kaleb Pearson", "team": "IDH", "pos": "F", "gp": 56, "g": 28, "a": 19, "tp": 47, "plusMinus": -6},
+  {"name": "David Cotton", "team": "KC", "pos": "F", "gp": 68, "g": 27, "a": 20, "tp": 47, "plusMinus": 25},
+  {"name": "Liam Malmquist", "team": "IDH", "pos": "F", "gp": 72, "g": 26, "a": 21, "tp": 47, "plusMinus": -10},
+  {"name": "Kyle Crnkovic", "team": "WIC", "pos": "F", "gp": 43, "g": 22, "a": 25, "tp": 47, "plusMinus": 1},
+  {"name": "Luke Adam", "team": "TAH", "pos": "F", "gp": 69, "g": 20, "a": 27, "tp": 47, "plusMinus": -30},
+  {"name": "Jaydon Dureau", "team": "NOR", "pos": "F", "gp": 54, "g": 18, "a": 29, "tp": 47, "plusMinus": -9},
+  {"name": "Jack O'Leary", "team": "NOR", "pos": "F", "gp": 72, "g": 16, "a": 31, "tp": 47, "plusMinus": -8},
+  {"name": "Evan Friesen", "team": "UTA", "pos": "F", "gp": 72, "g": 27, "a": 19, "tp": 46, "plusMinus": -14},
+  {"name": "Alex Aleardi", "team": "FW", "pos": "F", "gp": 66, "g": 24, "a": 22, "tp": 46, "plusMinus": 16},
+  {"name": "Brandon Osmundson", "team": "NOR", "pos": "F", "gp": 69, "g": 21, "a": 25, "tp": 46, "plusMinus": -7},
+  {"name": "Kristóf Papp", "team": "NOR", "pos": "F", "gp": 66, "g": 20, "a": 26, "tp": 46, "plusMinus": -6},
+  {"name": "Anthony Callin", "team": "WOR", "pos": "F", "gp": 65, "g": 18, "a": 28, "tp": 46, "plusMinus": 11},
+  {"name": "Ben King", "team": "CIN", "pos": "F", "gp": 43, "g": 13, "a": 33, "tp": 46, "plusMinus": -1},
+  {"name": "Shane Ott", "team": "BLM", "pos": "F", "gp": 69, "g": 13, "a": 33, "tp": 46, "plusMinus": -19},
+  {"name": "Craig Needham", "team": "FLA", "pos": "F", "gp": 71, "g": 22, "a": 23, "tp": 45, "plusMinus": 22},
+  {"name": "Josh Wilkins", "team": "SC", "pos": "F", "gp": 52, "g": 21, "a": 24, "tp": 45, "plusMinus": 11},
+  {"name": "Gunnarwolfe Fontaine", "team": "CIN", "pos": "F", "gp": 71, "g": 21, "a": 24, "tp": 45, "plusMinus": -7},
+  {"name": "Cody Sylvester", "team": "ATL", "pos": "F", "gp": 71, "g": 19, "a": 26, "tp": 45, "plusMinus": 8},
+  {"name": "Tyler Weiss", "team": "IND", "pos": "F", "gp": 69, "g": 18, "a": 27, "tp": 45, "plusMinus": -31},
+  {"name": "Jack Adams", "team": "IDH", "pos": "F", "gp": 61, "g": 13, "a": 32, "tp": 45, "plusMinus": -19},
+  {"name": "Anthony Bardaro", "team": "ORL", "pos": "F", "gp": 68, "g": 18, "a": 26, "tp": 44, "plusMinus": -24},
+  {"name": "Kyle Jackson", "team": "BLM", "pos": "F", "gp": 38, "g": 17, "a": 27, "tp": 44, "plusMinus": 4},
+  {"name": "Mitch Lewandowski", "team": "TOL", "pos": "F", "gp": 50, "g": 12, "a": 32, "tp": 44, "plusMinus": 13},
+  {"name": "Bobo Carpenter", "team": "KC", "pos": "F", "gp": 42, "g": 25, "a": 18, "tp": 43, "plusMinus": 19},
+  {"name": "Drew Callin", "team": "WOR", "pos": "F", "gp": 64, "g": 25, "a": 18, "tp": 43, "plusMinus": 0},
+  {"name": "Isak Walther", "team": "ATL", "pos": "F", "gp": 62, "g": 23, "a": 20, "tp": 43, "plusMinus": 8},
+  {"name": "Francesco Arcuri", "team": "IDH", "pos": "F", "gp": 60, "g": 22, "a": 21, "tp": 43, "plusMinus": -1},
+  {"name": "Adam McMaster", "team": "JAX", "pos": "F", "gp": 70, "g": 21, "a": 22, "tp": 43, "plusMinus": -13},
+  {"name": "Michal Stinil", "team": "WIC", "pos": "F", "gp": 54, "g": 16, "a": 27, "tp": 43, "plusMinus": -21},
+  {"name": "Sam Stevens", "team": "CIN", "pos": "F", "gp": 47, "g": 15, "a": 28, "tp": 43, "plusMinus": 9},
+  {"name": "Landon McCallum", "team": "KC", "pos": "F", "gp": 55, "g": 13, "a": 30, "tp": 43, "plusMinus": 4},
+  {"name": "Kyler Kupka", "team": "SC", "pos": "F", "gp": 43, "g": 19, "a": 23, "tp": 42, "plusMinus": 2},
+  {"name": "Matt DeMelis", "team": "WOR", "pos": "F", "gp": 72, "g": 19, "a": 23, "tp": 42, "plusMinus": 2},
+  {"name": "Matt Salhany", "team": "ADK", "pos": "F", "gp": 67, "g": 17, "a": 25, "tp": 42, "plusMinus": -6},
+  {"name": "Ryan O'Hara", "team": "GVL", "pos": "F", "gp": 72, "g": 15, "a": 27, "tp": 42, "plusMinus": 1},
+  {"name": "Tarun Fizer", "team": "FLA", "pos": "F", "gp": 56, "g": 22, "a": 19, "tp": 41, "plusMinus": 26},
+  {"name": "William Dufour", "team": "FW", "pos": "F", "gp": 30, "g": 17, "a": 24, "tp": 41, "plusMinus": 11},
+  {"name": "Ty Pelton-Byce", "team": "IDH", "pos": "F", "gp": 59, "g": 13, "a": 28, "tp": 41, "plusMinus": 4},
+  {"name": "Colin Bilek", "team": "KAL", "pos": "F", "gp": 71, "g": 22, "a": 18, "tp": 40, "plusMinus": -17},
+  {"name": "Spencer Kersten", "team": "ORL", "pos": "F", "gp": 42, "g": 19, "a": 21, "tp": 40, "plusMinus": -10},
+  {"name": "Eddie Matsushima", "team": "BLM", "pos": "F", "gp": 56, "g": 18, "a": 22, "tp": 40, "plusMinus": 5},
+  {"name": "Denis Smirnov", "team": "GVL", "pos": "F", "gp": 67, "g": 17, "a": 23, "tp": 40, "plusMinus": 4},
+  {"name": "Bryce Brodzinski", "team": "SAV", "pos": "F", "gp": 60, "g": 14, "a": 26, "tp": 40, "plusMinus": -5},
+  {"name": "Marcus Crawford", "team": "KC", "pos": "D", "gp": 70, "g": 14, "a": 72, "tp": 86, "plusMinus": 49},
+  {"name": "Nikita Sedov", "team": "BLM", "pos": "D", "gp": 68, "g": 13, "a": 46, "tp": 59, "plusMinus": 29},
+  {"name": "Jalen Smereck", "team": "FW", "pos": "D", "gp": 67, "g": 10, "a": 47, "tp": 57, "plusMinus": 21},
+  {"name": "Brent Johnson", "team": "WHL", "pos": "D", "gp": 72, "g": 12, "a": 43, "tp": 55, "plusMinus": 18},
+  {"name": "Sam Sedley", "team": "ALN", "pos": "D", "gp": 66, "g": 8, "a": 47, "tp": 55, "plusMinus": 22},
+  {"name": "Chad Nychuk", "team": "ATL", "pos": "D", "gp": 66, "g": 8, "a": 45, "tp": 53, "plusMinus": 17},
+  {"name": "Riley McCourt", "team": "TOL", "pos": "D", "gp": 70, "g": 7, "a": 46, "tp": 53, "plusMinus": -8},
+  {"name": "Jeremy Hanzel", "team": "ADK", "pos": "D", "gp": 72, "g": 8, "a": 41, "tp": 49, "plusMinus": -4},
+  {"name": "Matt Petgrave", "team": "IND", "pos": "D", "gp": 72, "g": 12, "a": 36, "tp": 48, "plusMinus": 8},
+  {"name": "Jordan Sambrook", "team": "FLA", "pos": "D", "gp": 72, "g": 9, "a": 38, "tp": 47, "plusMinus": 62},
+  {"name": "Cam Johnson", "team": "FLA", "pos": "G", "gp": 49, "g": 0, "a": 0, "tp": 0, "plusMinus": 0},
+  {"name": "Dryden McKay", "team": "BLM", "pos": "G", "gp": 45, "g": 0, "a": 0, "tp": 0, "plusMinus": 0},
+  {"name": "Mitchell Weeks", "team": "IND", "pos": "G", "gp": 44, "g": 0, "a": 0, "tp": 0, "plusMinus": 0},
+  {"name": "Vyacheslav Buteyets", "team": "TUL", "pos": "G", "gp": 44, "g": 0, "a": 0, "tp": 0, "plusMinus": 0},
+  {"name": "Isaac Poulter", "team": "NOR", "pos": "G", "gp": 43, "g": 0, "a": 0, "tp": 0, "plusMinus": 0}
+]''';
+
+  final data = json.decode(jsonStr) as List<dynamic>;
+  final echlData = data.map((player) {
+    final nameParts = (player['name'] as String).split(' ');
+    final firstName = nameParts.first.replaceAll("'", "\\'");
+    final lastName = nameParts.sublist(1).join(' ').replaceAll("'", "\\'");
+    final team = player['team'];
+    final pos = player['pos'];
+    final gp = player['gp'];
+    final g = player['g'];
+    final a = player['a'];
+    final tp = player['tp'];
+    final plusMinus = player['plusMinus'];
+    
+    return "      ['${firstName}', '${lastName}', '${team}', '${pos}', 25, ${gp}, ${g}, ${a}, ${tp}, ${plusMinus}, 'ECHL'],";
+  }).join('\\n');
+
+  File('tool/echl_data_out.txt').writeAsStringSync('    final echlData = [\n$echlData\n    ];');
+}
