@@ -31,8 +31,8 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDx9JXXIY4WVHF037TnoMaIU-1iWSYIZS0',
-    appId: '1:600777219577:android:a14603e562308660f83128', // Placeholder for Android App ID if not known
+    apiKey: 'AIzaSyD3SY-WkF587l_3Ts4s7_6sU_w6edLdiZQ',
+    appId: '1:600777219577:android:374f841bb9f8014cf83128',
     messagingSenderId: '600777219577',
     projectId: 'puckey-10930',
     databaseURL: 'https://puckey-10930-default-rtdb.europe-west1.firebasedatabase.app',

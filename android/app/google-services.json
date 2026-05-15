@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "600777219577",
+    "firebase_url": "https://puckey-10930-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "puckey-10930",
+    "storage_bucket": "puckey-10930.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:600777219577:android:374f841bb9f8014cf83128",
+        "android_client_info": {
+          "package_name": "com.companyname.puckey"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3SY-WkF587l_3Ts4s7_6sU_w6edLdiZQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
