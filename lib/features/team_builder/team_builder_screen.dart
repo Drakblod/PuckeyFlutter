@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:puckey/core/database/app_database.dart';
 import 'package:puckey/core/theme/design_system.dart';
 import 'package:puckey/core/services/storage_service.dart';
+import 'package:puckey/core/services/firebase_service.dart';
 import 'package:puckey/features/team_builder/providers/lineup_provider.dart';
 import 'package:puckey/features/scouting/scouting_screen.dart';
 
@@ -31,6 +33,8 @@ class TeamBuilderScreen extends HookConsumerWidget {
                   onSelected: (id) {
                     if (id == -1) {
                       _showCreateTeamDialog(context, ref);
+                    } else if (id == -2) {
+                      _showImportTeamDialog(context, ref);
                     } else {
                       ref.read(selectedTeamIdProvider.notifier).state = id;
                     }
@@ -55,7 +59,15 @@ class TeamBuilderScreen extends HookConsumerWidget {
                   itemBuilder: (context) => [
                     ...teams.map((t) => PopupMenuItem(
                       value: t.id,
-                      child: Text(t.name, style: const TextStyle(color: PuckeyColors.iceBlue)),
+                      child: Row(
+                        children: [
+                          Text(t.name, style: const TextStyle(color: PuckeyColors.iceBlue)),
+                          if (t.cloudCode != null) ...[
+                            const SizedBox(width: 8),
+                            const Icon(Icons.cloud_done, color: PuckeyColors.mint, size: 14),
+                          ]
+                        ],
+                      ),
                     )),
                     const PopupMenuDivider(),
                     const PopupMenuItem(
@@ -68,6 +80,16 @@ class TeamBuilderScreen extends HookConsumerWidget {
                         ],
                       ),
                     ),
+                    const PopupMenuItem(
+                      value: -2,
+                      child: Row(
+                        children: [
+                          Icon(Icons.cloud_download, color: PuckeyColors.teal, size: 18),
+                          SizedBox(width: 8),
+                          Text('IMPORT FROM CLOUD', style: TextStyle(color: PuckeyColors.teal)),
+                        ],
+                      ),
+                    ),
                   ],
                 );
               },
@@ -76,6 +98,48 @@ class TeamBuilderScreen extends HookConsumerWidget {
             ),
           ],
         ),
+        actions: [
+          teamsAsync.when(
+            data: (teams) {
+              final currentTeam = teams.firstWhere((t) => t.id == selectedTeamId, orElse: () => teams.first);
+              if (currentTeam.cloudCode == null) {
+                return IconButton(
+                  icon: const Icon(Icons.cloud_upload_outlined, color: PuckeyColors.teal),
+                  tooltip: 'Upload to Cloud',
+                  onPressed: () => _showCloudUploadDialog(context, ref, currentTeam),
+                );
+              } else {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: currentTeam.cloudCode!));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Code copied to clipboard!')),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: PuckeyColors.mint.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: PuckeyColors.mint.withOpacity(0.5)),
+                        ),
+                        child: Text(
+                          currentTeam.cloudCode!,
+                          style: const TextStyle(color: PuckeyColors.mint, fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }
+            },
+            loading: () => const SizedBox(),
+            error: (_, __) => const SizedBox(),
+          ),
+        ],
         bottom: TabBar(
           controller: tabController,
           isScrollable: true,
@@ -147,6 +211,101 @@ class TeamBuilderScreen extends HookConsumerWidget {
               }
             },
             child: const Text('CREATE', style: TextStyle(color: PuckeyColors.background)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showImportTeamDialog(BuildContext context, WidgetRef ref) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: PuckeyColors.surface,
+        title: const Text('IMPORT TEAM', style: TextStyle(color: PuckeyColors.teal)),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 5,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: PuckeyColors.mint, fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 8),
+          decoration: const InputDecoration(
+            hintText: 'CODE',
+            hintStyle: TextStyle(color: PuckeyColors.slate, letterSpacing: 0, fontSize: 16),
+            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: PuckeyColors.teal)),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('CANCEL', style: TextStyle(color: PuckeyColors.slate)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: PuckeyColors.teal),
+            onPressed: () async {
+              if (controller.text.length == 5) {
+                final id = await ref.read(firebaseServiceProvider).downloadTeam(controller.text.toUpperCase());
+                if (id != null) {
+                  ref.invalidate(teamsProvider);
+                  ref.read(selectedTeamIdProvider.notifier).state = id;
+                  Navigator.pop(context);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Invalid code or team not found.')),
+                  );
+                }
+              }
+            },
+            child: const Text('IMPORT', style: TextStyle(color: PuckeyColors.background)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCloudUploadDialog(BuildContext context, WidgetRef ref, Team team) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: PuckeyColors.surface,
+        title: const Text('UPLOAD TO CLOUD?', style: TextStyle(color: PuckeyColors.mint)),
+        content: const Text(
+          'This will create a 5-character sharing code. Anyone with the code can view and live-sync with your team.',
+          style: TextStyle(color: PuckeyColors.iceBlue),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('CANCEL', style: TextStyle(color: PuckeyColors.slate)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: PuckeyColors.mint),
+            onPressed: () async {
+              Navigator.pop(context);
+              
+              // Show loading dialog
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const Center(child: CircularProgressIndicator(color: PuckeyColors.mint)),
+              );
+
+              try {
+                final code = await ref.read(firebaseServiceProvider).uploadTeam(team.id);
+                Navigator.pop(context); // Pop loading
+                ref.invalidate(teamsProvider);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Team uploaded! Code: $code')),
+                );
+              } catch (e) {
+                Navigator.pop(context); // Pop loading
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(backgroundColor: Colors.red, content: Text('Upload failed: $e')),
+                );
+              }
+            },
+            child: const Text('UPLOAD', style: TextStyle(color: PuckeyColors.background)),
           ),
         ],
       ),

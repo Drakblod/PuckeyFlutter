@@ -1,6 +1,7 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:puckey/core/database/app_database.dart';
 import 'package:puckey/core/services/storage_service.dart';
+import 'package:puckey/core/services/firebase_service.dart';
 
 class LineupState {
   final Map<int, Map<String, Player>> slots;
@@ -38,9 +39,10 @@ class LineupState {
 
 class LineupNotifier extends StateNotifier<AsyncValue<LineupState>> {
   final StorageService _storage;
+  final Ref _ref;
   final int _teamId;
 
-  LineupNotifier(this._storage, this._teamId) : super(const AsyncValue.loading()) {
+  LineupNotifier(this._storage, this._ref, this._teamId) : super(const AsyncValue.loading()) {
     _loadLineup();
   }
 
@@ -83,9 +85,11 @@ class LineupNotifier extends StateNotifier<AsyncValue<LineupState>> {
     if (player == null) {
       newSlots[lineIndex]!.remove(slot);
       await _storage.removeLineupSlot(_teamId, lineIndex, slot);
+      _syncRemove(lineIndex, slot);
     } else {
       newSlots[lineIndex]![slot] = player;
       await _storage.saveLineupSlot(_teamId, lineIndex, slot, player.id);
+      _syncSlot(lineIndex, slot, player.id, tag: currentState.tags[lineIndex]?[slot]);
     }
 
     state = AsyncValue.data(currentState.copyWith(slots: newSlots));
@@ -102,7 +106,28 @@ class LineupNotifier extends StateNotifier<AsyncValue<LineupState>> {
     newTags[lineIndex]![slot] = tag;
 
     await _storage.updateSlotTag(_teamId, lineIndex, slot, tag);
+    final player = currentState.slots[lineIndex]?[slot];
+    if (player != null) {
+      _syncSlot(lineIndex, slot, player.id, tag: tag);
+    }
+
     state = AsyncValue.data(currentState.copyWith(tags: newTags));
+  }
+
+  Future<void> _syncSlot(int lineIdx, String slot, int pId, {String? tag}) async {
+    final teams = await _storage.getTeams();
+    final team = teams.firstWhere((t) => t.id == _teamId);
+    if (team.cloudCode != null) {
+      _ref.read(firebaseServiceProvider).syncSlot(team.cloudCode!, lineIdx, slot, pId, tag: tag);
+    }
+  }
+
+  Future<void> _syncRemove(int lineIdx, String slot) async {
+    final teams = await _storage.getTeams();
+    final team = teams.firstWhere((t) => t.id == _teamId);
+    if (team.cloudCode != null) {
+      _ref.read(firebaseServiceProvider).removeSlot(team.cloudCode!, lineIdx, slot);
+    }
   }
 }
 
@@ -115,5 +140,5 @@ final teamsProvider = FutureProvider<List<Team>>((ref) {
 final lineupProvider = StateNotifierProvider<LineupNotifier, AsyncValue<LineupState>>((ref) {
   final storage = ref.watch(storageServiceProvider);
   final teamId = ref.watch(selectedTeamIdProvider);
-  return LineupNotifier(storage, teamId);
+  return LineupNotifier(storage, ref, teamId);
 });

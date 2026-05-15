@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:puckey/firebase_options.dart';
 import 'package:puckey/core/database/app_database.dart';
 import 'package:puckey/core/services/storage_service.dart';
 import 'package:puckey/core/theme/design_system.dart';
@@ -8,6 +10,14 @@ import 'package:puckey/features/home/home_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('Firebase initialization failed: $e');
+  }
+
   final db = AppDatabase();
   final storageService = StorageService(db);
   

@@ -244,11 +244,14 @@ late final GeneratedColumn<int> id = GeneratedColumn<int>('id', aliasedName, fal
 static const VerificationMeta _nameMeta = const VerificationMeta('name');
 @override
 late final GeneratedColumn<String> name = GeneratedColumn<String>('name', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+static const VerificationMeta _cloudCodeMeta = const VerificationMeta('cloudCode');
+@override
+late final GeneratedColumn<String> cloudCode = GeneratedColumn<String>('cloud_code', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
 static const VerificationMeta _createdAtMeta = const VerificationMeta('createdAt');
 @override
 late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>('created_at', aliasedName, false, type: DriftSqlType.dateTime, requiredDuringInsert: false, defaultValue: currentDateAndTime);
 @override
-List<GeneratedColumn> get $columns => [id, name, createdAt];
+List<GeneratedColumn> get $columns => [id, name, cloudCode, createdAt];
 @override
 String get aliasedName => _alias ?? actualTableName;
 @override
@@ -263,13 +266,14 @@ context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));}if (dat
 context.handle(_nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));} else if (isInserting) {
 context.missing(_nameMeta);
 }
-if (data.containsKey('created_at')) {
+if (data.containsKey('cloud_code')) {
+context.handle(_cloudCodeMeta, cloudCode.isAcceptableOrUnknown(data['cloud_code']!, _cloudCodeMeta));}if (data.containsKey('created_at')) {
 context.handle(_createdAtMeta, createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));}return context;
 }
 @override
 Set<GeneratedColumn> get $primaryKey => {id};
 @override Team map(Map<String, dynamic> data, {String? tablePrefix})  {
-final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';return Team(id: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}id'])!, name: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}name'])!, createdAt: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!, );
+final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';return Team(id: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}id'])!, name: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}name'])!, cloudCode: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}cloud_code']), createdAt: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!, );
 }
 @override
 $TeamsTable createAlias(String alias) {
@@ -277,45 +281,49 @@ return $TeamsTable(attachedDatabase, alias);}}class Team extends DataClass imple
 {
 final int id;
 final String name;
+final String? cloudCode;
 final DateTime createdAt;
-const Team({required this.id, required this.name, required this.createdAt});@override
+const Team({required this.id, required this.name, this.cloudCode, required this.createdAt});@override
 Map<String, Expression> toColumns(bool nullToAbsent) {
 final map = <String, Expression> {};map['id'] = Variable<int>(id);
 map['name'] = Variable<String>(name);
-map['created_at'] = Variable<DateTime>(createdAt);
+if (!nullToAbsent || cloudCode != null){map['cloud_code'] = Variable<String>(cloudCode);
+}map['created_at'] = Variable<DateTime>(createdAt);
 return map; 
 }
 TeamsCompanion toCompanion(bool nullToAbsent) {
-return TeamsCompanion(id: Value(id),name: Value(name),createdAt: Value(createdAt),);
+return TeamsCompanion(id: Value(id),name: Value(name),cloudCode: cloudCode == null && nullToAbsent ? const Value.absent() : Value(cloudCode),createdAt: Value(createdAt),);
 }
 factory Team.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
 serializer ??= driftRuntimeOptions.defaultSerializer;
-return Team(id: serializer.fromJson<int>(json['id']),name: serializer.fromJson<String>(json['name']),createdAt: serializer.fromJson<DateTime>(json['createdAt']),);}
+return Team(id: serializer.fromJson<int>(json['id']),name: serializer.fromJson<String>(json['name']),cloudCode: serializer.fromJson<String?>(json['cloudCode']),createdAt: serializer.fromJson<DateTime>(json['createdAt']),);}
 @override Map<String, dynamic> toJson({ValueSerializer? serializer}) {
 serializer ??= driftRuntimeOptions.defaultSerializer;
 return <String, dynamic>{
-'id': serializer.toJson<int>(id),'name': serializer.toJson<String>(name),'createdAt': serializer.toJson<DateTime>(createdAt),};}Team copyWith({int? id,String? name,DateTime? createdAt}) => Team(id: id ?? this.id,name: name ?? this.name,createdAt: createdAt ?? this.createdAt,);Team copyWithCompanion(TeamsCompanion data) {
+'id': serializer.toJson<int>(id),'name': serializer.toJson<String>(name),'cloudCode': serializer.toJson<String?>(cloudCode),'createdAt': serializer.toJson<DateTime>(createdAt),};}Team copyWith({int? id,String? name,Value<String?> cloudCode = const Value.absent(),DateTime? createdAt}) => Team(id: id ?? this.id,name: name ?? this.name,cloudCode: cloudCode.present ? cloudCode.value : this.cloudCode,createdAt: createdAt ?? this.createdAt,);Team copyWithCompanion(TeamsCompanion data) {
 return Team(
-id: data.id.present ? data.id.value : this.id,name: data.name.present ? data.name.value : this.name,createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,);
+id: data.id.present ? data.id.value : this.id,name: data.name.present ? data.name.value : this.name,cloudCode: data.cloudCode.present ? data.cloudCode.value : this.cloudCode,createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,);
 }
 @override
-String toString() {return (StringBuffer('Team(')..write('id: $id, ')..write('name: $name, ')..write('createdAt: $createdAt')..write(')')).toString();}
+String toString() {return (StringBuffer('Team(')..write('id: $id, ')..write('name: $name, ')..write('cloudCode: $cloudCode, ')..write('createdAt: $createdAt')..write(')')).toString();}
 @override
- int get hashCode => Object.hash(id, name, createdAt);@override
-bool operator ==(Object other) => identical(this, other) || (other is Team && other.id == this.id && other.name == this.name && other.createdAt == this.createdAt);
+ int get hashCode => Object.hash(id, name, cloudCode, createdAt);@override
+bool operator ==(Object other) => identical(this, other) || (other is Team && other.id == this.id && other.name == this.name && other.cloudCode == this.cloudCode && other.createdAt == this.createdAt);
 }class TeamsCompanion extends UpdateCompanion<Team> {
 final Value<int> id;
 final Value<String> name;
+final Value<String?> cloudCode;
 final Value<DateTime> createdAt;
-const TeamsCompanion({this.id = const Value.absent(),this.name = const Value.absent(),this.createdAt = const Value.absent(),});
-TeamsCompanion.insert({this.id = const Value.absent(),required String name,this.createdAt = const Value.absent(),}): name = Value(name);
+const TeamsCompanion({this.id = const Value.absent(),this.name = const Value.absent(),this.cloudCode = const Value.absent(),this.createdAt = const Value.absent(),});
+TeamsCompanion.insert({this.id = const Value.absent(),required String name,this.cloudCode = const Value.absent(),this.createdAt = const Value.absent(),}): name = Value(name);
 static Insertable<Team> custom({Expression<int>? id, 
 Expression<String>? name, 
+Expression<String>? cloudCode, 
 Expression<DateTime>? createdAt, 
 }) {
-return RawValuesInsertable({if (id != null)'id': id,if (name != null)'name': name,if (createdAt != null)'created_at': createdAt,});
-}TeamsCompanion copyWith({Value<int>? id, Value<String>? name, Value<DateTime>? createdAt}) {
-return TeamsCompanion(id: id ?? this.id,name: name ?? this.name,createdAt: createdAt ?? this.createdAt,);
+return RawValuesInsertable({if (id != null)'id': id,if (name != null)'name': name,if (cloudCode != null)'cloud_code': cloudCode,if (createdAt != null)'created_at': createdAt,});
+}TeamsCompanion copyWith({Value<int>? id, Value<String>? name, Value<String?>? cloudCode, Value<DateTime>? createdAt}) {
+return TeamsCompanion(id: id ?? this.id,name: name ?? this.name,cloudCode: cloudCode ?? this.cloudCode,createdAt: createdAt ?? this.createdAt,);
 }
 @override
 Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -323,12 +331,14 @@ final map = <String, Expression> {};if (id.present) {
 map['id'] = Variable<int>(id.value);}
 if (name.present) {
 map['name'] = Variable<String>(name.value);}
+if (cloudCode.present) {
+map['cloud_code'] = Variable<String>(cloudCode.value);}
 if (createdAt.present) {
 map['created_at'] = Variable<DateTime>(createdAt.value);}
 return map; 
 }
 @override
-String toString() {return (StringBuffer('TeamsCompanion(')..write('id: $id, ')..write('name: $name, ')..write('createdAt: $createdAt')..write(')')).toString();}
+String toString() {return (StringBuffer('TeamsCompanion(')..write('id: $id, ')..write('name: $name, ')..write('cloudCode: $cloudCode, ')..write('createdAt: $createdAt')..write(')')).toString();}
 }
 class $LineupSlotsTable extends LineupSlots with TableInfo<$LineupSlotsTable, LineupSlot>{
 @override final GeneratedDatabase attachedDatabase;
@@ -856,8 +866,8 @@ GeneratedColumn<bool> get isFavorite => $composableBuilder(
     (Player,$$PlayersTableReferences),
     Player,
     PrefetchHooks Function({bool lineupSlotsRefs})
-    >;typedef $$TeamsTableCreateCompanionBuilder = TeamsCompanion Function({Value<int> id,required String name,Value<DateTime> createdAt,});
-typedef $$TeamsTableUpdateCompanionBuilder = TeamsCompanion Function({Value<int> id,Value<String> name,Value<DateTime> createdAt,});
+    >;typedef $$TeamsTableCreateCompanionBuilder = TeamsCompanion Function({Value<int> id,required String name,Value<String?> cloudCode,Value<DateTime> createdAt,});
+typedef $$TeamsTableUpdateCompanionBuilder = TeamsCompanion Function({Value<int> id,Value<String> name,Value<String?> cloudCode,Value<DateTime> createdAt,});
       final class $$TeamsTableReferences extends BaseReferences<
         _$AppDatabase,
         $TeamsTable,
@@ -912,6 +922,11 @@ ColumnFilters<String> get name => $composableBuilder(
       builder: (column) => 
       ColumnFilters(column));
       
+ColumnFilters<String> get cloudCode => $composableBuilder(
+      column: $table.cloudCode,
+      builder: (column) => 
+      ColumnFilters(column));
+      
 ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt,
       builder: (column) => 
@@ -958,6 +973,11 @@ ColumnOrderings<String> get name => $composableBuilder(
       builder: (column) => 
       ColumnOrderings(column));
       
+ColumnOrderings<String> get cloudCode => $composableBuilder(
+      column: $table.cloudCode,
+      builder: (column) => 
+      ColumnOrderings(column));
+      
 ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt,
       builder: (column) => 
@@ -980,6 +1000,10 @@ ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       
 GeneratedColumn<String> get name => $composableBuilder(
       column: $table.name,
+      builder: (column) => column);
+      
+GeneratedColumn<String> get cloudCode => $composableBuilder(
+      column: $table.cloudCode,
       builder: (column) => column);
       
 GeneratedColumn<DateTime> get createdAt => $composableBuilder(
@@ -1026,8 +1050,8 @@ GeneratedColumn<DateTime> get createdAt => $composableBuilder(
         createFilteringComposer: () => $$TeamsTableFilterComposer($db: db,$table:table),
         createOrderingComposer: () => $$TeamsTableOrderingComposer($db: db,$table:table),
         createComputedFieldComposer: () => $$TeamsTableAnnotationComposer($db: db,$table:table),
-        updateCompanionCallback: ({Value<int> id = const Value.absent(),Value<String> name = const Value.absent(),Value<DateTime> createdAt = const Value.absent(),})=> TeamsCompanion(id: id,name: name,createdAt: createdAt,),
-        createCompanionCallback: ({Value<int> id = const Value.absent(),required String name,Value<DateTime> createdAt = const Value.absent(),})=> TeamsCompanion.insert(id: id,name: name,createdAt: createdAt,),
+        updateCompanionCallback: ({Value<int> id = const Value.absent(),Value<String> name = const Value.absent(),Value<String?> cloudCode = const Value.absent(),Value<DateTime> createdAt = const Value.absent(),})=> TeamsCompanion(id: id,name: name,cloudCode: cloudCode,createdAt: createdAt,),
+        createCompanionCallback: ({Value<int> id = const Value.absent(),required String name,Value<String?> cloudCode = const Value.absent(),Value<DateTime> createdAt = const Value.absent(),})=> TeamsCompanion.insert(id: id,name: name,cloudCode: cloudCode,createdAt: createdAt,),
         withReferenceMapper: (p0) => p0
               .map(
                   (e) =>

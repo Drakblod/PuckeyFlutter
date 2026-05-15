@@ -28,6 +28,7 @@ class Players extends Table {
 class Teams extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
+  TextColumn get cloudCode => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
@@ -45,7 +46,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 5;
   
   @override
   MigrationStrategy get migration {
@@ -63,8 +64,12 @@ class AppDatabase extends _$AppDatabase {
           await m.createTable(teams);
           await m.addColumn(lineupSlots, lineupSlots.teamId);
           await m.addColumn(lineupSlots, lineupSlots.roleTag);
-          // Create a default team if not exists
-          await into(teams).insert(TeamsCompanion.insert(name: 'Default Team'));
+        }
+        if (from < 5) {
+          // Note: Skipping 4 to ensure clean bump to 5
+          try {
+            await m.addColumn(teams, teams.cloudCode);
+          } catch (e) {}
         }
       },
     );
@@ -86,7 +91,12 @@ class AppDatabase extends _$AppDatabase {
 
   // Team methods
   Future<List<Team>> getTeams() => select(teams).get();
-  Future<int> createTeam(String name) => into(teams).insert(TeamsCompanion.insert(name: name));
+  Future<int> createTeam(String name, {String? cloudCode}) => 
+    into(teams).insert(TeamsCompanion.insert(name: name, cloudCode: Value(cloudCode)));
+  
+  Future<void> updateTeamCloudCode(int id, String? code) => 
+    (update(teams)..where((t) => t.id.equals(id))).write(TeamsCompanion(cloudCode: Value(code)));
+
   Future<void> deleteTeam(int id) async {
     await (delete(lineupSlots)..where((t) => t.teamId.equals(id))).go();
     await (delete(teams)..where((t) => t.id.equals(id))).go();

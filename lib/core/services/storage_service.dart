@@ -161,14 +161,26 @@ class StorageService {
     }
   }
 
-  Future<int> createTeam(String name) async {
+  Future<int> createTeam(String name, {String? cloudCode}) async {
     await initialize();
     try {
-      return await _db.createTeam(name);
+      return await _db.createTeam(name, cloudCode: cloudCode);
     } catch (e) {
       final newId = _localTeams.length + 1;
-      _localTeams.add(Team(id: newId, name: name, createdAt: DateTime.now()));
+      _localTeams.add(Team(id: newId, name: name, cloudCode: cloudCode, createdAt: DateTime.now()));
       return newId;
+    }
+  }
+
+  Future<void> updateTeamCloudCode(int id, String? code) async {
+    await initialize();
+    try {
+      await _db.updateTeamCloudCode(id, code);
+    } catch (e) {
+      final index = _localTeams.indexWhere((t) => t.id == id);
+      if (index != -1) {
+        _localTeams[index] = _localTeams[index].copyWith(cloudCode: Value(code));
+      }
     }
   }
 
